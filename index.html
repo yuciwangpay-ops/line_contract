@@ -1,0 +1,73 @@
+<body>
+    <h2>📝 發起新習慣契約</h2>
+    
+    <div id="createForm">
+        <label>習慣名稱 (例如: 早起運動)</label><br>
+        <input type="text" id="habitName" placeholder="輸入名稱"><br><br>
+        
+        <label>習慣描述 (例如: 晨跑3公里)</label><br>
+        <input type="text" id="description" placeholder="輸入描述"><br><br>
+        
+        <label>懲罰條款 (例如: 請喝咖啡)</label><br>
+        <input type="text" id="penalty" placeholder="輸入懲罰"><br><br>
+        
+        <label>為期幾天 (例如: 21)</label><br>
+        <input type="number" id="duration" placeholder="21"><br><br>
+        
+        <button onclick="submitContract()">建立契約並邀請朋友</button>
+    </div>
+
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script>
+        // 初始化 LIFF
+        async function main() {
+            await liff.init({ liffId: "你的LIFF_ID" });
+            if (!liff.isLoggedIn()) {
+                liff.login();
+            }
+        }
+        main();
+
+        // 送出資料給 GAS
+        async function submitContract() {
+            const profile = await liff.getProfile();
+            const habitName = document.getElementById("habitName").value;
+            const description = document.getElementById("description").value;
+            const penalty = document.getElementById("penalty").value;
+            const duration = document.getElementById("duration").value;
+
+            // 檢查必填
+            if(!habitName || !duration) {
+                alert("請填寫習慣名稱和天數！");
+                return;
+            }
+
+            // 顯示傳送中...
+            alert("正在建立契約...");
+
+            // 呼叫 GAS (記得換成你的新 GAS 網址)
+            const response = await fetch("你的GAS網址/exec", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    action: "create_contract", // 告訴 GAS 我要建立契約
+                    userId: profile.userId,
+                    userName: profile.displayName,
+                    habitName: habitName,
+                    description: description,
+                    penalty: penalty,
+                    duration: duration
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.result === "success") {
+                alert("建立成功！契約代碼是：" + data.contractId);
+                // 這裡之後我們會做「分享給好友」的功能
+            } else {
+                alert("建立失敗，請稍後再試");
+            }
+        }
+    </script>
+</body>

@@ -1,27 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>發起新習慣</title>
+  
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 20px;
+      font-size: 16px;
+      background-color: #f5f5f5;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #555;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      margin-top: 5px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 15px;
+      background-color: #00B900;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      margin-top: 30px;
+      cursor: pointer;
+    }
+    button:active {
+      background-color: #009900;
+    }
+  </style>
+</head>
+
 <body>
     <h2>📝 發起新習慣契約</h2>
     
     <div id="createForm">
-        <label>習慣名稱 (例如: 早起運動)</label><br>
-        <input type="text" id="habitName" placeholder="輸入名稱"><br><br>
+        <label>習慣名稱 (例如: 早起運動)</label>
+        <input type="text" id="habitName" placeholder="輸入名稱">
         
-        <label>習慣描述 (例如: 晨跑3公里)</label><br>
-        <input type="text" id="description" placeholder="輸入描述"><br><br>
+        <label>習慣描述 (例如: 晨跑3公里)</label>
+        <input type="text" id="description" placeholder="輸入描述">
         
-        <label>懲罰條款 (例如: 請喝咖啡)</label><br>
-        <input type="text" id="penalty" placeholder="輸入懲罰"><br><br>
+        <label>懲罰條款 (例如: 請喝咖啡)</label>
+        <input type="text" id="penalty" placeholder="輸入懲罰">
         
-        <label>為期幾天 (例如: 21)</label><br>
-        <input type="number" id="duration" placeholder="21"><br><br>
+        <label>為期幾天 (例如: 21)</label>
+        <input type="number" id="duration" placeholder="21">
         
         <button onclick="submitContract()">建立契約並邀請朋友</button>
     </div>
 
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    
     <script>
-        // 初始化 LIFF
+        // 初始化 LIFF (記得把下面的 ID 換成你的 LIFF ID)
         async function main() {
-            await liff.init({ liffId: "你的LIFF_ID" });
+            await liff.init({ liffId: "2008852230-BdH1Y5Fl" });
             if (!liff.isLoggedIn()) {
                 liff.login();
             }
@@ -30,44 +83,60 @@
 
         // 送出資料給 GAS
         async function submitContract() {
+            // 這裡加入防呆，避免還沒讀取到 LIFF 就按按鈕
+            if (!liff.isInClient() && !liff.isLoggedIn()) {
+                alert("請在 LINE 裡面開啟此網頁！");
+                return;
+            }
+
             const profile = await liff.getProfile();
             const habitName = document.getElementById("habitName").value;
             const description = document.getElementById("description").value;
             const penalty = document.getElementById("penalty").value;
             const duration = document.getElementById("duration").value;
 
-            // 檢查必填
             if(!habitName || !duration) {
                 alert("請填寫習慣名稱和天數！");
                 return;
             }
 
-            // 顯示傳送中...
-            alert("正在建立契約...");
+            // 按鈕按下後變色，避免重複點擊
+            const btn = document.querySelector('button');
+            btn.disabled = true;
+            btn.textContent = "資料傳送中...";
 
-            // 呼叫 GAS (記得換成你的新 GAS 網址)
-            const response = await fetch("https://script.google.com/macros/s/AKfycbzdjySu86ax9UeOTqUsF0qKwG0xDlVAck3UTQ0w7E0nRPd_8Gjp7Togn83-5BPG4WoWtg/exec", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    action: "create_contract", // 告訴 GAS 我要建立契約
-                    userId: profile.userId,
-                    userName: profile.displayName,
-                    habitName: habitName,
-                    description: description,
-                    penalty: penalty,
-                    duration: duration
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.result === "success") {
-                alert("建立成功！契約代碼是：" + data.contractId);
-                // 這裡之後我們會做「分享給好友」的功能
-            } else {
-                alert("建立失敗，請稍後再試");
+            try {
+                // 這裡務必換成你的 GAS 網址
+                const response = await fetch("https://script.google.com/macros/s/AKfycbzdjySu86ax9UeOTqUsF0qKwG0xDlVAck3UTQ0w7E0nRPd_8Gjp7Togn83-5BPG4WoWtg/exec", {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" }, // 避免 CORS 錯誤的小技巧
+                    body: JSON.stringify({
+                        action: "create_contract",
+                        userId: profile.userId,
+                        userName: profile.displayName,
+                        habitName: habitName,
+                        description: description,
+                        penalty: penalty,
+                        duration: duration
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.result === "success") {
+                    alert("建立成功！\n契約代碼是：" + data.contractId);
+                    liff.closeWindow(); // 成功後自動關閉視窗
+                } else {
+                    alert("建立失敗，請檢查 GAS 日誌");
+                    btn.disabled = false;
+                    btn.textContent = "建立契約並邀請朋友";
+                }
+            } catch (e) {
+                alert("發生錯誤：" + e);
+                btn.disabled = false;
+                btn.textContent = "建立契約並邀請朋友";
             }
         }
     </script>
 </body>
+</html>

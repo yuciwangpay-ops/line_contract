@@ -231,16 +231,57 @@
                 btn.disabled = false;
             }
         }
+        // --- 功能 B: 加入介面 (對應正確 HTML 版) ---
+        async function showJoinMode() {
+            console.log("正在執行 showJoinMode..."); // 讓我們確認新程式碼有跑起來
 
-        // --- 功能 B: 加入介面 (目前先做顯示) ---
-        function showJoinMode() {
-            document.getElementById("createSection").classList.add("hidden"); // 隱藏建立表單
-            document.getElementById("joinSection").classList.remove("hidden"); // 顯示加入區塊
+            // 1. 切換顯示區塊
+            document.getElementById("createSection").classList.add("hidden");
+            // 為了防呆，如果 shareSection 存在才隱藏，不存在就不理它
+            const shareSec = document.getElementById("shareSection");
+            if (shareSec) shareSec.classList.add("hidden");
 
-            // 這裡暫時顯示 ID，下一步我們再寫「抓取契約內容」
-            document.getElementById("joinInfo").innerHTML =
-                `嗨 ${userProfile.displayName}！<br>有人邀請你加入代碼為 <b>${currentContractId}</b> 的挑戰。<br>(詳細內容顯示功能開發中)`;
+            document.getElementById("joinSection").classList.remove("hidden");
+
+            try {
+                // 2. 呼叫 GAS
+                console.log("正在呼叫 GAS...");
+                const res = await fetch(GAS_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        action: "get_contract_details",
+                        contractId: currentContractId
+                    })
+                });
+                const json = await res.json();
+                console.log("GAS 回傳資料:", json);
+
+                if (json.result === "success") {
+                    const data = json.data;
+
+                    // 3. 填入資料 (使用 textContent)
+                    // 這些 ID 必須跟你的 HTML 裡面的 id="showHabitName" 一模一樣
+                    document.getElementById("showHabitName").textContent = data.habitName;
+                    document.getElementById("showDesc").textContent = data.description;
+                    document.getElementById("showPenalty").textContent = data.penalty;
+                    document.getElementById("showDuration").textContent = data.duration;
+
+                    // 4. 顯示卡片
+                    document.getElementById("loadingText").classList.add("hidden");
+                    document.getElementById("contractDetails").classList.remove("hidden");
+                    document.getElementById("btnJoin").classList.remove("hidden");
+
+                } else {
+                    document.getElementById("loadingText").textContent = "❌ 找不到這個契約，可能已被刪除。";
+                }
+
+            } catch (e) {
+                console.error("發生錯誤:", e);
+                document.getElementById("loadingText").textContent = "讀取錯誤: " + e;
+            }
         }
+
         // --- 功能 C: 執行加入 (正式版) ---
         async function joinContract() {
             if (!currentContractId) return;

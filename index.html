@@ -130,9 +130,28 @@
 
         <div id="joinSection" class="hidden">
             <h2>🤝 邀請你加入習慣挑戰</h2>
-            <p id="joinInfo">載入中...</p>
-            <button id="btnJoin" class="btn btn-join" onclick="joinContract()">我要加入！</button>
+
+            <p id="loadingText" style="text-align:center; color:#666;">正在讀取契約內容...</p>
+
+            <div id="contractDetails" class="hidden"
+                style="background: white; padding: 20px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px;">
+                <h3 id="showHabitName" style="margin-top:0; color:#00B900;"></h3>
+
+                <p><strong>📝 內容：</strong><span id="showDesc"></span></p>
+                <p><strong>⚠️ 懲罰：</strong><span id="showPenalty" style="color:red;"></span></p>
+                <p><strong>🗓 天數：</strong><span id="showDuration"></span> 天</p>
+
+                <hr style="border:0; border-top:1px dashed #ccc; margin:15px 0;">
+
+                <p style="font-size: 14px; color: #555;">
+                    你的朋友邀請你一起完成這個挑戰！<br>
+                    如果同意以上條款，請點擊下方按鈕加入。
+                </p>
+            </div>
+
+            <button id="btnJoin" class="btn btn-join hidden" onclick="joinContract()">😤 沒問題，我要加入！</button>
         </div>
+
 
     </div>
 
@@ -140,8 +159,8 @@
     <script>
         // ⚠️ 設定區：請換成你的 ID 和 網址
         const MY_LIFF_ID = "2008852230-BdH1Y5Fl";
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbyoyglXJa24kQRamh31d46jNNRLi4MvBrSM_zeDLWT0XDWDP_DKnJYqLurd0DbbDvgR/exec";
-        //                       https://script.google.com/macros/s/AKfycbyoyglXJa24kQRamh31d46jNNRLi4MvBrSM_zeDLWT0XDWDP_DKnJYqLurd0DbbDvgR/exec
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxozZ0IGi8jfjhv2oGpQXMT2bRqcMVYc2d8zUT89vAhOpXnv7rpxKa0-ZH-VsaO0Ulm8w/exec";
+        //        http:
         // 全域變數
         let userProfile = null;
         let currentContractId = null;

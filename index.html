@@ -155,6 +155,9 @@
 
                 <button id="btnStart" class="btn hidden" style="background-color: #ff9800;" onclick="startContract()">🚀
                     啟動契約 (隊長限定)</button>
+
+                <button id="btnCheckIn" class="btn hidden" style="background-color: #28a745;" onclick="doCheckIn()">✅
+                    今天已完成！我要打卡</button>
             </div>
         </div>
 
@@ -295,14 +298,21 @@
                     document.getElementById("loadingText").classList.add("hidden");
                     document.getElementById("contractDetails").classList.remove("hidden");
 
+                    document.getElementById("btnJoin").classList.add("hidden");
+                    document.getElementById("btnStart").classList.add("hidden");
+                    document.getElementById("btnCheckIn").classList.add("hidden");
+
                     const isCreator = (String(data.creatorId) === String(userProfile.userId));
                     const isRunning = (data.status === "RUNNING");
 
                     if (isRunning) {
                         // --- 狀態：進行中 ---
-                        document.getElementById("statusMessage").textContent = "🔥 挑戰正在進行中！";
-                        document.getElementById("statusMessage").style.color = "red";
+//                        document.getElementById("statusMessage").textContent = "🔥 挑戰正在進行中！";
+//                        document.getElementById("statusMessage").style.color = "red";
                         // 這裡未來可以放「去打卡」按鈕
+                        document.getElementById("btnCheckIn").classList.remove("hidden");
+                        document.getElementById("statusMessage").textContent = "🔥 挑戰進行中，別忘了每天打卡喔！";
+                        document.getElementById("statusMessage").style.color = "#d63384"; // 換個熱血的顏色
                     } else {
                         // --- 狀態：等待中 (PENDING) ---
 

@@ -307,8 +307,8 @@
 
                     if (isRunning) {
                         // --- 狀態：進行中 ---
-//                        document.getElementById("statusMessage").textContent = "🔥 挑戰正在進行中！";
-//                        document.getElementById("statusMessage").style.color = "red";
+                        //                        document.getElementById("statusMessage").textContent = "🔥 挑戰正在進行中！";
+                        //                        document.getElementById("statusMessage").style.color = "red";
                         // 這裡未來可以放「去打卡」按鈕
                         document.getElementById("btnCheckIn").classList.remove("hidden");
                         document.getElementById("statusMessage").textContent = "🔥 挑戰進行中，別忘了每天打卡喔！";
@@ -464,6 +464,45 @@
                 listDiv.innerHTML = "讀取失敗: " + e;
             }
         }
+
+        // --- 功能 E: 執行打卡 (它是獨立的！) ---
+        async function doCheckIn() {
+            console.log("按鈕被按下了！"); // 加這行來測試
+
+            const btn = document.getElementById("btnCheckIn");
+            btn.disabled = true;
+            btn.textContent = "打卡中...";
+            btn.style.backgroundColor = "#6c757d"; // 變灰色
+
+            try {
+                // ... (原本的 fetch 程式碼) ...
+                const res = await fetch(GAS_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        action: "log_time",
+                        contractId: currentContractId,
+                        userId: userProfile.userId,
+                        userName: userProfile.displayName
+                    })
+                });
+                const data = await res.json();
+
+                if (data.result === "success") {
+                    alert("🎉 打卡成功！");
+                    btn.textContent = "✅ 今日已打卡";
+                } else {
+                    alert("打卡失敗: " + data.message);
+                    btn.disabled = false;
+                    btn.textContent = "✅ 今天已完成！我要打卡";
+                    btn.style.backgroundColor = "#28a745"; // 變回綠色
+                }
+
+            } catch (e) {
+                alert("錯誤: " + e);
+                btn.disabled = false;
+            }
+        } // 2. 這裡也要有一個結尾括號！
 
         // --- 輔助功能: 顯示分享頁面 (把原本 submitContract 裡面的邏輯拉出來共用) ---
         function showSharePage(contractId) {

@@ -167,7 +167,7 @@
     <script>
         // ⚠️ 設定區：請換成你的 ID 和 網址
         const MY_LIFF_ID = "2008852230-BdH1Y5Fl";
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzJRGAen6MblelS2shQrO29b1ljx22PyG8ZwfAhsmwe7cFoO0cBqJOgSDcj8-fAriG0fg/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzLnngS0FCYUX6lEEaixxiFIoMggIlg99PaGULmWDYt8XlgDyG-ZBj2Pgy-R7rbrYD8rQ/exec";
         //        http: https://script.google.com/macros/s/AKfycbywn8lGaDhTuQM7JWAPOqS52yW6UmdQxMWVOUzdg27HAntIYFGP0hHPA0lAfIXo2L8G/exec
         // 全域變數
         let userProfile = null;
@@ -261,7 +261,8 @@
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
                     body: JSON.stringify({
                         action: "get_contract_details",
-                        contractId: currentContractId
+                        contractId: currentContractId,
+                        userId: userProfile.userId // <--- [新增] 這行很重要！不然 GAS 不知道要查誰
                     })
                 });
                 const json = await res.json();
@@ -306,13 +307,24 @@
                     const isRunning = (data.status === "RUNNING");
 
                     if (isRunning) {
-                        // --- 狀態：進行中 ---
-                        //                        document.getElementById("statusMessage").textContent = "🔥 挑戰正在進行中！";
-                        //                        document.getElementById("statusMessage").style.color = "red";
-                        // 這裡未來可以放「去打卡」按鈕
-                        document.getElementById("btnCheckIn").classList.remove("hidden");
                         document.getElementById("statusMessage").textContent = "🔥 挑戰進行中，別忘了每天打卡喔！";
-                        document.getElementById("statusMessage").style.color = "#d63384"; // 換個熱血的顏色
+                        document.getElementById("statusMessage").style.color = "#d63384"; // 換個熱血的顏
+
+                        const btnCheckIn = document.getElementById("btnCheckIn");
+                        btnCheckIn.classList.remove("hidden");
+
+                        // [新增] 如果今天已經打過卡，直接把按鈕鎖住
+                        if (isCheckedInToday) {
+                            btnCheckIn.disabled = true;
+                            btnCheckIn.textContent = "✅ 今日已打卡";
+                            btnCheckIn.style.backgroundColor = "#6c757d"; // 灰色
+                        } else {
+                            // 沒打過卡，顯示綠色按鈕
+                            btnCheckIn.disabled = false;
+                            btnCheckIn.textContent = "✅ 今天已完成！我要打卡";
+                            btnCheckIn.style.backgroundColor = "#28a745"; // 綠色
+                        }
+
                     } else {
                         // --- 狀態：等待中 (PENDING) ---
 

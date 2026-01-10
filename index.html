@@ -129,9 +129,9 @@
         </div>
 
         <div id="joinSection" class="hidden">
-            <h2>🤝 邀請你加入習慣挑戰</h2>
+            <h2>🤝 習慣挑戰大廳</h2>
 
-            <p id="loadingText" style="text-align:center; color:#666;">正在讀取契約內容...</p>
+            <p id="loadingText" style="text-align:center; color:#666;">正在讀取契約與成員...</p>
 
             <div id="contractDetails" class="hidden"
                 style="background: white; padding: 20px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px;">
@@ -143,13 +143,19 @@
 
                 <hr style="border:0; border-top:1px dashed #ccc; margin:15px 0;">
 
-                <p style="font-size: 14px; color: #555;">
-                    你的朋友邀請你一起完成這個挑戰！<br>
-                    如果同意以上條款，請點擊下方按鈕加入。
-                </p>
+                <h4>👥 目前勇者名單：</h4>
+                <ul id="memberListDisplay" style="text-align:left; padding-left: 20px; color: #555;">
+                </ul>
+
+                <p id="statusMessage" style="font-weight:bold; color: #666; margin-top:20px;"></p>
             </div>
 
-            <button id="btnJoin" class="btn btn-join hidden" onclick="joinContract()">😤 沒問題，我要加入！</button>
+            <div id="actionButtons">
+                <button id="btnJoin" class="btn btn-join hidden" onclick="joinContract()">➕ 沒問題，我要加入！</button>
+
+                <button id="btnStart" class="btn hidden" style="background-color: #ff9800;" onclick="startContract()">🚀
+                    啟動契約 (隊長限定)</button>
+            </div>
         </div>
 
     </div>
@@ -158,7 +164,7 @@
     <script>
         // ⚠️ 設定區：請換成你的 ID 和 網址
         const MY_LIFF_ID = "2008852230-BdH1Y5Fl";
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbywn8lGaDhTuQM7JWAPOqS52yW6UmdQxMWVOUzdg27HAntIYFGP0hHPA0lAfIXo2L8G/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzRJ-krTHb63_cZ7VihOmgP9l-NYw89_u_VHathJr_ilbuZ5DdPPWFAZNgLz1rQe5uTGw/exec";
         //        http: https://script.google.com/macros/s/AKfycbywn8lGaDhTuQM7JWAPOqS52yW6UmdQxMWVOUzdg27HAntIYFGP0hHPA0lAfIXo2L8G/exec
         // 全域變數
         let userProfile = null;
@@ -231,21 +237,22 @@
                 btn.disabled = false;
             }
         }
-        // --- 功能 B: 加入介面 (對應正確 HTML 版) ---
+        // --- 功能 B: 多人版加入介面 (判斷身分與狀態) ---
         async function showJoinMode() {
-            console.log("正在執行 showJoinMode..."); // 讓我們確認新程式碼有跑起來
-
-            // 1. 切換顯示區塊
+            // 1. 切換畫面
             document.getElementById("createSection").classList.add("hidden");
-            // 為了防呆，如果 shareSection 存在才隱藏，不存在就不理它
             const shareSec = document.getElementById("shareSection");
             if (shareSec) shareSec.classList.add("hidden");
-
             document.getElementById("joinSection").classList.remove("hidden");
 
+            // 重置按鈕狀態
+            document.getElementById("btnJoin").classList.add("hidden");
+            document.getElementById("btnStart").classList.add("hidden");
+            document.getElementById("statusMessage").textContent = "";
+            document.getElementById("memberListDisplay").innerHTML = ""; // 清空名單
+
             try {
-                // 2. 呼叫 GAS
-                console.log("正在呼叫 GAS...");
+                // 2. 呼叫 GAS 取得詳情 + 成員名單
                 const res = await fetch(GAS_URL, {
                     method: "POST",
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -255,33 +262,73 @@
                     })
                 });
                 const json = await res.json();
-                console.log("GAS 回傳資料:", json);
 
                 if (json.result === "success") {
-                    const data = json.data;
+                    const data = json.data;     // 契約資料
+                    const members = json.members || []; // 成員名單 (陣列)
 
-                    // 3. 填入資料 (使用 textContent)
-                    // 這些 ID 必須跟你的 HTML 裡面的 id="showHabitName" 一模一樣
+                    // 3. 填寫契約基本資料
                     document.getElementById("showHabitName").textContent = data.habitName;
                     document.getElementById("showDesc").textContent = data.description;
                     document.getElementById("showPenalty").textContent = data.penalty;
                     document.getElementById("showDuration").textContent = data.duration;
 
-                    // 4. 顯示卡片
+                    // 4. 顯示成員名單 (加上 Admin 標記)
+                    const listContainer = document.getElementById("memberListDisplay");
+                    let amIInList = false; // 檢查我是否已加入
+
+                    members.forEach(member => {
+                        const li = document.createElement("li");
+                        // 如果 role 是 Admin，加個皇冠 👑
+                        const roleIcon = (member.role === "Admin") ? "👑 " : "👤 ";
+                        li.textContent = roleIcon + member.name;
+                        listContainer.appendChild(li);
+
+                        // 檢查名字是否跟我一樣 (判斷是否已加入)
+                        // 註：更嚴謹應該比對 UserID，但這裡先比對名字或假設後端沒回傳ID
+                        if (member.name === userProfile.displayName) {
+                            amIInList = true;
+                        }
+                    });
+
+                    // 5. 關鍵邏輯：決定顯示什麼按鈕
                     document.getElementById("loadingText").classList.add("hidden");
                     document.getElementById("contractDetails").classList.remove("hidden");
-                    document.getElementById("btnJoin").classList.remove("hidden");
+
+                    const isCreator = (String(data.creatorId) === String(userProfile.userId));
+                    const isRunning = (data.status === "RUNNING");
+
+                    if (isRunning) {
+                        // --- 狀態：進行中 ---
+                        document.getElementById("statusMessage").textContent = "🔥 挑戰正在進行中！";
+                        document.getElementById("statusMessage").style.color = "red";
+                        // 這裡未來可以放「去打卡」按鈕
+                    } else {
+                        // --- 狀態：等待中 (PENDING) ---
+
+                        if (isCreator) {
+                            // 如果我是隊長 -> 顯示啟動按鈕
+                            document.getElementById("btnStart").classList.remove("hidden");
+                            document.getElementById("statusMessage").textContent = "👑 隊長，等人齊了就按啟動吧！";
+                        } else if (amIInList) {
+                            // 如果我已經加入了 -> 顯示等待訊息
+                            document.getElementById("statusMessage").textContent = "✅ 你已加入，等待隊長啟動中...";
+                            document.getElementById("statusMessage").style.color = "green";
+                        } else {
+                            // 如果我是路人 -> 顯示加入按鈕
+                            document.getElementById("btnJoin").classList.remove("hidden");
+                        }
+                    }
 
                 } else {
-                    document.getElementById("loadingText").textContent = "❌ 找不到這個契約，可能已被刪除。";
+                    document.getElementById("loadingText").textContent = "❌ 找不到契約";
                 }
 
             } catch (e) {
-                console.error("發生錯誤:", e);
-                document.getElementById("loadingText").textContent = "讀取錯誤: " + e;
+                console.error(e);
+                document.getElementById("loadingText").textContent = "錯誤: " + e;
             }
         }
-
         // --- 功能 C: 執行加入 (正式版) ---
         async function joinContract() {
             if (!currentContractId) return;
@@ -318,6 +365,39 @@
             }
         }
 
+        // --- 功能 D: 隊長啟動契約 ---
+        async function startContract() {
+            if (!confirm("確定要啟動契約嗎？\n啟動後就不能再加入新成員囉！")) return;
+
+            const btn = document.getElementById("btnStart");
+            btn.disabled = true;
+            btn.textContent = "啟動中...";
+
+            try {
+                const res = await fetch(GAS_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        action: "start_contract",
+                        contractId: currentContractId,
+                        userId: userProfile.userId // 用來驗證是否為隊長
+                    })
+                });
+                const data = await res.json();
+
+                if (data.result === "success") {
+                    alert("🚀 契約正式啟動！\n大家可以開始打卡囉！");
+                    location.reload(); // 重新整理頁面，更新狀態
+                } else {
+                    alert("啟動失敗: " + data.message);
+                    btn.disabled = false;
+                    btn.textContent = "🚀 啟動契約 (隊長限定)";
+                }
+            } catch (e) {
+                alert("錯誤: " + e);
+                btn.disabled = false;
+            }
+        }
         // 小工具: 複製連結
         function copyLink() {
             const copyText = document.getElementById("shareLink");

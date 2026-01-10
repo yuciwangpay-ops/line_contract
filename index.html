@@ -106,7 +106,7 @@
             <button class="btn" style="background-color: #6c757d;" onclick="loadMyContracts()">📂 分享我建立過的契約</button>
             <hr style="margin: 30px 0; border: 0; border-top: 1px solid #ddd;">
             <div id="historyList" style="margin-top: 15px;"></div>
-            
+
             <h2>📝 發起新習慣契約</h2>
             <label>習慣名稱</label>
             <input type="text" id="habitName" placeholder="例如: 早起運動">
@@ -140,8 +140,8 @@
     <script>
         // ⚠️ 設定區：請換成你的 ID 和 網址
         const MY_LIFF_ID = "2008852230-BdH1Y5Fl";
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzFNZAZHns0WHL6WtBtWsi5G_RqG4DjFx0ySFIqwf3MKhoNTdCZ_A7CfA5g8DD0lmfOmw/exec";
-
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbyoyglXJa24kQRamh31d46jNNRLi4MvBrSM_zeDLWT0XDWDP_DKnJYqLurd0DbbDvgR/exec";
+        //                       https://script.google.com/macros/s/AKfycbyoyglXJa24kQRamh31d46jNNRLi4MvBrSM_zeDLWT0XDWDP_DKnJYqLurd0DbbDvgR/exec
         // 全域變數
         let userProfile = null;
         let currentContractId = null;
@@ -223,10 +223,40 @@
             document.getElementById("joinInfo").innerHTML =
                 `嗨 ${userProfile.displayName}！<br>有人邀請你加入代碼為 <b>${currentContractId}</b> 的挑戰。<br>(詳細內容顯示功能開發中)`;
         }
+        // --- 功能 C: 執行加入 (正式版) ---
+        async function joinContract() {
+            if (!currentContractId) return;
 
-        // --- 功能 C: 執行加入 (還沒寫後端，先用 alert 測試) ---
-        function joinContract() {
-            alert("下一步我們要來寫 GAS 的 join_contract 功能！\n目標契約: " + currentContractId);
+            const btn = document.getElementById("btnJoin");
+            btn.disabled = true;
+            btn.textContent = "加入中...";
+
+            try {
+                const res = await fetch(GAS_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        action: "join_contract",
+                        contractId: currentContractId,
+                        userId: userProfile.userId,
+                        userName: userProfile.displayName
+                    })
+                });
+                const data = await res.json();
+
+                if (data.result === "success") {
+                    alert("🎉 恭喜！你已成功加入挑戰！\n即將開始你們的習慣養成之旅！");
+                    liff.closeWindow(); // 關閉視窗，讓他們回到聊天室
+                } else {
+                    alert("加入失敗: " + data.message);
+                    btn.disabled = false;
+                    btn.textContent = "我要加入！";
+                }
+            } catch (e) {
+                alert("錯誤: " + e);
+                btn.disabled = false;
+                btn.textContent = "我要加入！";
+            }
         }
 
         // 小工具: 複製連結

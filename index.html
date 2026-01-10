@@ -1,233 +1,304 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>習慣打卡契約</title>
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 20px; background-color: #f5f5f5; font-size: 16px; }
-    .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    h2 { text-align: center; color: #333; }
-    label { display: block; margin-top: 15px; font-weight: bold; color: #555; }
-    input { width: 100%; padding: 12px; font-size: 16px; margin-top: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-    
-    /* 按鈕樣式 */
-    .btn { width: 100%; padding: 15px; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; margin-top: 30px; cursor: pointer; color: white; }
-    .btn-create { background-color: #00B900; } /* LINE 綠 */
-    .btn-join { background-color: #007bff; }   /* 藍色 */
-    .btn:disabled { background-color: #ccc; }
 
-    /* 隱藏區塊用 */
-    .hidden { display: none; }
-    
-    /* 邀請連結區塊 */
-    #shareSection { text-align: center; background: #eef; padding: 15px; border-radius: 8px; border: 1px dashed #007bff; }
-    #shareLink { word-break: break-all; font-family: monospace; background: #fff; padding: 5px; border: 1px solid #ddd; margin: 10px 0; display: block; }
-  </style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>習慣打卡契約</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        /* 按鈕樣式 */
+        .btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            margin-top: 30px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .btn-create {
+            background-color: #00B900;
+        }
+
+        /* LINE 綠 */
+        .btn-join {
+            background-color: #007bff;
+        }
+
+        /* 藍色 */
+        .btn:disabled {
+            background-color: #ccc;
+        }
+
+        /* 隱藏區塊用 */
+        .hidden {
+            display: none;
+        }
+
+        /* 邀請連結區塊 */
+        #shareSection {
+            text-align: center;
+            background: #eef;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px dashed #007bff;
+        }
+
+        #shareLink {
+            word-break: break-all;
+            font-family: monospace;
+            background: #fff;
+            padding: 5px;
+            border: 1px solid #ddd;
+            margin: 10px 0;
+            display: block;
+        }
+    </style>
 </head>
+
 <body>
 
-<div class="container">
-    
-<div id="createSection">
-    <h2>📝 發起新習慣契約</h2>
-    <input type="number" id="duration" placeholder="21">
-    
-    <button class="btn btn-create" onclick="submitContract()">建立並產生邀請連結</button>
-    
-    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #ddd;">
-    <button class="btn" style="background-color: #6c757d;" onclick="loadMyContracts()">📂 分享我建立過的契約</button>
-    
-    <div id="historyList" style="margin-top: 15px;"></div>
-</div>
+    <div class="container">
 
-    <div id="createSection">
-        <h2>📝 發起新習慣契約</h2>
-        <label>習慣名稱</label>
-        <input type="text" id="habitName" placeholder="例如: 早起運動">
-        <label>習慣描述</label>
-        <input type="text" id="description" placeholder="例如: 晨跑3公里">
-        <label>懲罰條款</label>
-        <input type="text" id="penalty" placeholder="例如: 請喝咖啡">
-        <label>為期幾天</label>
-        <input type="number" id="duration" placeholder="21">
-        <button class="btn btn-create" onclick="submitContract()">建立並產生邀請連結</button>
+        <div id="createSection">
+            <h2>📝 發起新習慣契約</h2>
+
+            <label>習慣名稱</label>
+            <input type="text" id="habitName" placeholder="例如: 早起運動">
+
+            <label>習慣描述</label>
+            <input type="text" id="description" placeholder="例如: 晨跑3公里">
+
+            <label>懲罰條款</label>
+            <input type="text" id="penalty" placeholder="例如: 請喝咖啡">
+
+            <label>為期幾天</label>
+            <input type="number" id="duration" placeholder="21">
+
+            <button class="btn btn-create" onclick="submitContract()">建立並產生邀請連結</button>
+
+            <hr style="margin: 30px 0; border: 0; border-top: 1px solid #ddd;">
+            <button class="btn" style="background-color: #6c757d;" onclick="loadMyContracts()">📂 分享我建立過的契約</button>
+
+            <div id="historyList" style="margin-top: 15px;"></div>
+        </div>
+
+        <div id="shareSection" class="hidden">
+            <h2>🎉 契約建立成功！</h2>
+            <p>請複製下方連結傳給朋友：</p>
+            <textarea id="shareLink" rows="3" readonly></textarea>
+            <button class="btn btn-join" onclick="copyLink()">複製連結</button>
+        </div>
+
+        <div id="joinSection" class="hidden">
+            <h2>🤝 邀請你加入習慣挑戰</h2>
+            <p id="joinInfo">載入中...</p>
+            <button id="btnJoin" class="btn btn-join" onclick="joinContract()">我要加入！</button>
+        </div>
+
     </div>
 
-    <div id="shareSection" class="hidden">
-        <h2>🎉 契約建立成功！</h2>
-        <p>請複製下方連結傳給朋友：</p>
-        <textarea id="shareLink" rows="3" readonly></textarea>
-        <button class="btn btn-join" onclick="copyLink()">複製連結</button>
-    </div>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script>
+        // ⚠️ 設定區：請換成你的 ID 和 網址
+        const MY_LIFF_ID = "2008852230-BdH1Y5Fl";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzFNZAZHns0WHL6WtBtWsi5G_RqG4DjFx0ySFIqwf3MKhoNTdCZ_A7CfA5g8DD0lmfOmw/exec";
 
-    <div id="joinSection" class="hidden">
-        <h2>🤝 邀請你加入習慣挑戰</h2>
-        <p id="joinInfo">載入中...</p>
-        <button id="btnJoin" class="btn btn-join" onclick="joinContract()">我要加入！</button>
-    </div>
+        // 全域變數
+        let userProfile = null;
+        let currentContractId = null;
 
-</div>
+        async function main() {
+            await liff.init({ liffId: MY_LIFF_ID });
 
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script>
-    // ⚠️ 設定區：請換成你的 ID 和 網址
-    const MY_LIFF_ID = "2008852230-BdH1Y5Fl"; 
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzFNZAZHns0WHL6WtBtWsi5G_RqG4DjFx0ySFIqwf3MKhoNTdCZ_A7CfA5g8DD0lmfOmw/exec"; 
-
-    // 全域變數
-    let userProfile = null;
-    let currentContractId = null;
-
-    async function main() {
-        await liff.init({ liffId: MY_LIFF_ID });
-        
-        if (!liff.isLoggedIn()) {
-            liff.login();
-            return;
-        }
-
-        userProfile = await liff.getProfile();
-
-        // 檢查網址有沒有帶 contractId (判斷是「發起」還是「加入」)
-        const urlParams = new URLSearchParams(window.location.search);
-        currentContractId = urlParams.get("contractId");
-
-        if (currentContractId) {
-            // ---> 如果有 ID，切換到「加入模式」
-            showJoinMode();
-        } else {
-            // ---> 如果沒 ID，維持「建立模式」
-            document.getElementById("createSection").classList.remove("hidden");
-        }
-    }
-    main();
-
-    // --- 功能 A: 發起契約 ---
-    async function submitContract() {
-        const habitName = document.getElementById("habitName").value;
-        const description = document.getElementById("description").value;
-        const penalty = document.getElementById("penalty").value;
-        const duration = document.getElementById("duration").value;
-
-        if(!habitName || !duration) return alert("請填寫完整資訊");
-
-        const btn = document.querySelector('.btn-create');
-        btn.disabled = true;
-        btn.textContent = "處理中...";
-
-        try {
-            const res = await fetch(GAS_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({
-                    action: "create_contract",
-                    userId: userProfile.userId,
-                    userName: userProfile.displayName,
-                    habitName: habitName,
-                    description: description,
-                    penalty: penalty,
-                    duration: duration
-                })
-            });
-            const data = await res.json();
-            
-            if (data.result === "success") {
-                // 隱藏表單，顯示分享連結
-                document.getElementById("createSection").classList.add("hidden");
-                document.getElementById("shareSection").classList.remove("hidden");
-                
-                // 組合出邀請連結
-                const inviteUrl = `https://liff.line.me/${MY_LIFF_ID}?contractId=${data.contractId}`;
-                document.getElementById("shareLink").value = inviteUrl;
-            }
-        } catch(e) {
-            alert("錯誤: " + e);
-            btn.disabled = false;
-        }
-    }
-
-    // --- 功能 B: 加入介面 (目前先做顯示) ---
-    function showJoinMode() {
-        document.getElementById("createSection").classList.add("hidden"); // 隱藏建立表單
-        document.getElementById("joinSection").classList.remove("hidden"); // 顯示加入區塊
-        
-        // 這裡暫時顯示 ID，下一步我們再寫「抓取契約內容」
-        document.getElementById("joinInfo").innerHTML = 
-            `嗨 ${userProfile.displayName}！<br>有人邀請你加入代碼為 <b>${currentContractId}</b> 的挑戰。<br>(詳細內容顯示功能開發中)`;
-    }
-
-    // --- 功能 C: 執行加入 (還沒寫後端，先用 alert 測試) ---
-    function joinContract() {
-        alert("下一步我們要來寫 GAS 的 join_contract 功能！\n目標契約: " + currentContractId);
-    }
-
-    // 小工具: 複製連結
-    function copyLink() {
-        const copyText = document.getElementById("shareLink");
-        copyText.select();
-        document.execCommand("copy");
-        alert("連結已複製！快去傳給朋友吧！");
-    }
-
-// --- 功能 D: 載入我的舊契約 ---
-    async function loadMyContracts() {
-        const listDiv = document.getElementById("historyList");
-        listDiv.innerHTML = "正在讀取資料...";
-        
-        try {
-            const res = await fetch(GAS_URL, {
-                method: "POST",
-                headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({
-                    action: "get_my_contracts", // 呼叫剛剛寫的新功能
-                    userId: userProfile.userId
-                })
-            });
-            const data = await res.json();
-            
-            listDiv.innerHTML = ""; // 清空載入中文字
-
-            if (data.contracts.length === 0) {
-                listDiv.innerHTML = "<p style='text-align:center; color:#999;'>沒有等待中的契約</p>";
+            if (!liff.isLoggedIn()) {
+                liff.login();
                 return;
             }
 
-            // 產生按鈕列表
-            data.contracts.forEach(contract => {
-                const item = document.createElement("div");
-                item.style.cssText = "background: white; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;";
-                
-                // 左邊顯示名稱
-                item.innerHTML = `<span><b>${contract.name}</b></span>`;
-                
-                // 右邊放一個「分享」按鈕
-                const shareBtn = document.createElement("button");
-                shareBtn.innerText = "分享";
-                shareBtn.style.cssText = "background: #17a2b8; color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer;";
-                shareBtn.onclick = function() {
-                    // 這裡重複利用原本的分享畫面邏輯
-                    showSharePage(contract.id); 
-                };
-                
-                item.appendChild(shareBtn);
-                listDiv.appendChild(item);
-            });
+            userProfile = await liff.getProfile();
 
-        } catch(e) {
-            listDiv.innerHTML = "讀取失敗: " + e;
+            // 檢查網址有沒有帶 contractId (判斷是「發起」還是「加入」)
+            const urlParams = new URLSearchParams(window.location.search);
+            currentContractId = urlParams.get("contractId");
+
+            if (currentContractId) {
+                // ---> 如果有 ID，切換到「加入模式」
+                showJoinMode();
+            } else {
+                // ---> 如果沒 ID，維持「建立模式」
+                document.getElementById("createSection").classList.remove("hidden");
+            }
         }
-    }
+        main();
 
-    // --- 輔助功能: 顯示分享頁面 (把原本 submitContract 裡面的邏輯拉出來共用) ---
-    function showSharePage(contractId) {
-        document.getElementById("createSection").classList.add("hidden");
-        document.getElementById("shareSection").classList.remove("hidden");
-        
-        const inviteUrl = `https://liff.line.me/${MY_LIFF_ID}?contractId=${contractId}`;
-        document.getElementById("shareLink").value = inviteUrl;
-    }
-</script>
+        // --- 功能 A: 發起契約 ---
+        async function submitContract() {
+            const habitName = document.getElementById("habitName").value;
+            const description = document.getElementById("description").value;
+            const penalty = document.getElementById("penalty").value;
+            const duration = document.getElementById("duration").value;
+
+            if (!habitName || !duration) return alert("請填寫完整資訊");
+
+            const btn = document.querySelector('.btn-create');
+            btn.disabled = true;
+            btn.textContent = "處理中...";
+
+            try {
+                const res = await fetch(GAS_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        action: "create_contract",
+                        userId: userProfile.userId,
+                        userName: userProfile.displayName,
+                        habitName: habitName,
+                        description: description,
+                        penalty: penalty,
+                        duration: duration
+                    })
+                });
+                const data = await res.json();
+
+                if (data.result === "success") {
+                    // 隱藏表單，顯示分享連結
+                    document.getElementById("createSection").classList.add("hidden");
+                    document.getElementById("shareSection").classList.remove("hidden");
+
+                    // 組合出邀請連結
+                    const inviteUrl = `https://liff.line.me/${MY_LIFF_ID}?contractId=${data.contractId}`;
+                    document.getElementById("shareLink").value = inviteUrl;
+                }
+            } catch (e) {
+                alert("錯誤: " + e);
+                btn.disabled = false;
+            }
+        }
+
+        // --- 功能 B: 加入介面 (目前先做顯示) ---
+        function showJoinMode() {
+            document.getElementById("createSection").classList.add("hidden"); // 隱藏建立表單
+            document.getElementById("joinSection").classList.remove("hidden"); // 顯示加入區塊
+
+            // 這裡暫時顯示 ID，下一步我們再寫「抓取契約內容」
+            document.getElementById("joinInfo").innerHTML =
+                `嗨 ${userProfile.displayName}！<br>有人邀請你加入代碼為 <b>${currentContractId}</b> 的挑戰。<br>(詳細內容顯示功能開發中)`;
+        }
+
+        // --- 功能 C: 執行加入 (還沒寫後端，先用 alert 測試) ---
+        function joinContract() {
+            alert("下一步我們要來寫 GAS 的 join_contract 功能！\n目標契約: " + currentContractId);
+        }
+
+        // 小工具: 複製連結
+        function copyLink() {
+            const copyText = document.getElementById("shareLink");
+            copyText.select();
+            document.execCommand("copy");
+            alert("連結已複製！快去傳給朋友吧！");
+        }
+
+        // --- 功能 D: 載入我的舊契約 ---
+        async function loadMyContracts() {
+            const listDiv = document.getElementById("historyList");
+            listDiv.innerHTML = "正在讀取資料...";
+
+            try {
+                const res = await fetch(GAS_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        action: "get_my_contracts", // 呼叫剛剛寫的新功能
+                        userId: userProfile.userId
+                    })
+                });
+                const data = await res.json();
+
+                listDiv.innerHTML = ""; // 清空載入中文字
+
+                if (data.contracts.length === 0) {
+                    listDiv.innerHTML = "<p style='text-align:center; color:#999;'>沒有等待中的契約</p>";
+                    return;
+                }
+
+                // 產生按鈕列表
+                data.contracts.forEach(contract => {
+                    const item = document.createElement("div");
+                    item.style.cssText = "background: white; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;";
+
+                    // 左邊顯示名稱
+                    item.innerHTML = `<span><b>${contract.name}</b></span>`;
+
+                    // 右邊放一個「分享」按鈕
+                    const shareBtn = document.createElement("button");
+                    shareBtn.innerText = "分享";
+                    shareBtn.style.cssText = "background: #17a2b8; color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer;";
+                    shareBtn.onclick = function () {
+                        // 這裡重複利用原本的分享畫面邏輯
+                        showSharePage(contract.id);
+                    };
+
+                    item.appendChild(shareBtn);
+                    listDiv.appendChild(item);
+                });
+
+            } catch (e) {
+                listDiv.innerHTML = "讀取失敗: " + e;
+            }
+        }
+
+        // --- 輔助功能: 顯示分享頁面 (把原本 submitContract 裡面的邏輯拉出來共用) ---
+        function showSharePage(contractId) {
+            document.getElementById("createSection").classList.add("hidden");
+            document.getElementById("shareSection").classList.remove("hidden");
+
+            const inviteUrl = `https://liff.line.me/${MY_LIFF_ID}?contractId=${contractId}`;
+            document.getElementById("shareLink").value = inviteUrl;
+        }
+    </script>
 
 </body>
+
 </html>

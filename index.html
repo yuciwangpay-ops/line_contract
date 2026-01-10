@@ -102,26 +102,23 @@
     <div class="container">
 
         <div id="createSection">
-            <h2>📝 發起新習慣契約</h2>
 
+            <button class="btn" style="background-color: #6c757d;" onclick="loadMyContracts()">📂 分享我建立過的契約</button>
+            <hr style="margin: 30px 0; border: 0; border-top: 1px solid #ddd;">
+            <div id="historyList" style="margin-top: 15px;"></div>
+            
+            <h2>📝 發起新習慣契約</h2>
             <label>習慣名稱</label>
             <input type="text" id="habitName" placeholder="例如: 早起運動">
-
             <label>習慣描述</label>
             <input type="text" id="description" placeholder="例如: 晨跑3公里">
-
             <label>懲罰條款</label>
             <input type="text" id="penalty" placeholder="例如: 請喝咖啡">
-
             <label>為期幾天</label>
             <input type="number" id="duration" placeholder="21">
-
             <button class="btn btn-create" onclick="submitContract()">建立並產生邀請連結</button>
 
-            <hr style="margin: 30px 0; border: 0; border-top: 1px solid #ddd;">
-            <button class="btn" style="background-color: #6c757d;" onclick="loadMyContracts()">📂 分享我建立過的契約</button>
 
-            <div id="historyList" style="margin-top: 15px;"></div>
         </div>
 
         <div id="shareSection" class="hidden">

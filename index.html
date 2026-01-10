@@ -157,7 +157,7 @@
                     啟動契約 (隊長限定)</button>
 
                 <button id="btnCheckIn" class="btn hidden" style="background-color: #28a745;" onclick="doCheckIn()">✅
-                    今天已完成！我要打卡</button>
+                    今天任務完成！我要打卡</button>
             </div>
         </div>
 
@@ -167,7 +167,7 @@
     <script>
         // ⚠️ 設定區：請換成你的 ID 和 網址
         const MY_LIFF_ID = "2008852230-BdH1Y5Fl";
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzyo0FmKjCUpkD2DeL9zovjSzCpUpyLi4ZBrfeK2icSVcR2YCNP_508MUd73N64LEBJuA/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwGZI8PSRaPf3-fiyWQ0Z1A0McGjQrEpAs3EixETAalc1It3AAGJZQEvmB-hVQWZEUCJA/exec";
         //        http: https://script.google.com/macros/s/AKfycbywn8lGaDhTuQM7JWAPOqS52yW6UmdQxMWVOUzdg27HAntIYFGP0hHPA0lAfIXo2L8G/exec
         // 全域變數
         let userProfile = null;
@@ -506,7 +506,7 @@
                 } else {
                     alert("打卡失敗: " + data.message);
                     btn.disabled = false;
-                    btn.textContent = "✅ 今天已完成！我要打卡";
+                    btn.textContent = "✅ 今天任務完成了！我要打卡";
                     btn.style.backgroundColor = "#28a745"; // 變回綠色
                 }
 

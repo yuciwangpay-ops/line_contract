@@ -102,7 +102,8 @@
     <div class="container">
 
         <div id="createSection">
-            <button class="btn" style="background-color: #6c757d;" onclick="loadMyContracts()">📂 載入我的契約列表</button>
+
+            <button class="btn" style="background-color: #6c757d;" onclick="loadMyContracts()">📂 分享我建立過的契約</button>
             <hr style="margin: 30px 0; border: 0; border-top: 1px solid #ddd;">
             <div id="historyList" style="margin-top: 15px;"></div>
 
@@ -166,7 +167,7 @@
     <script>
         // ⚠️ 設定區：請換成你的 ID 和 網址
         const MY_LIFF_ID = "2008852230-BdH1Y5Fl";
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbw-5FD74SPue9q7bmFDgSjccWMnbUVtfYXHGrXFYZJSPU4FI-YpTcCglLRht6KT0xe3XQ/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwGZI8PSRaPf3-fiyWQ0Z1A0McGjQrEpAs3EixETAalc1It3AAGJZQEvmB-hVQWZEUCJA/exec";
         //        http: https://script.google.com/macros/s/AKfycbywn8lGaDhTuQM7JWAPOqS52yW6UmdQxMWVOUzdg27HAntIYFGP0hHPA0lAfIXo2L8G/exec
         // 全域變數
         let userProfile = null;
@@ -427,6 +428,54 @@
             alert("連結已複製！快去傳給朋友吧！");
         }
 
+        // --- 功能 D: 載入我的舊契約 ---
+        async function loadMyContracts() {
+            const listDiv = document.getElementById("historyList");
+            listDiv.innerHTML = "正在讀取資料...";
+
+            try {
+                const res = await fetch(GAS_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        action: "get_my_contracts", // 呼叫剛剛寫的新功能
+                        userId: userProfile.userId
+                    })
+                });
+                const data = await res.json();
+
+                listDiv.innerHTML = ""; // 清空載入中文字
+
+                if (data.contracts.length === 0) {
+                    listDiv.innerHTML = "<p style='text-align:center; color:#999;'>沒有等待中的契約</p>";
+                    return;
+                }
+
+                // 產生按鈕列表
+                data.contracts.forEach(contract => {
+                    const item = document.createElement("div");
+                    item.style.cssText = "background: white; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;";
+
+                    // 左邊顯示名稱
+                    item.innerHTML = `<span><b>${contract.name}</b></span>`;
+
+                    // 右邊放一個「分享」按鈕
+                    const shareBtn = document.createElement("button");
+                    shareBtn.innerText = "分享";
+                    shareBtn.style.cssText = "background: #17a2b8; color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer;";
+                    shareBtn.onclick = function () {
+                        // 這裡重複利用原本的分享畫面邏輯
+                        showSharePage(contract.id);
+                    };
+
+                    item.appendChild(shareBtn);
+                    listDiv.appendChild(item);
+                });
+
+            } catch (e) {
+                listDiv.innerHTML = "讀取失敗: " + e;
+            }
+        }
 
         // --- 功能 E: 執行打卡 (它是獨立的！) ---
         async function doCheckIn() {
@@ -467,90 +516,6 @@
             }
         } // 2. 這裡也要有一個結尾括號！
 
-        // --- 功能 G: 複製契約連結 (這個是新朋友，要留著) ---
-        function copyContractLink(contractId, contractName) {
-            const baseUrl = window.location.href.split('?')[0];
-            const fullUrl = `${baseUrl}?contractId=${contractId}`;
-
-            navigator.clipboard.writeText(fullUrl).then(() => {
-                alert(`已複製「${contractName}」的邀請連結！\n\n👇 連結長這樣：\n${fullUrl}\n\n趕快去貼給朋友吧！`);
-            }).catch(err => {
-                prompt("請手動複製以下連結分享給朋友：", fullUrl);
-            });
-        }
-
-        // --- 功能 D (升級版): 載入我的契約列表 + 分享按鈕 ---
-        async function loadMyContracts() {
-            const listDiv = document.getElementById("historyList");
-            listDiv.innerHTML = "⏳ 正在搜尋你的契約...";
-
-            try {
-                const res = await fetch(GAS_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action: "get_my_contracts",
-                        userId: userProfile.userId
-                    })
-                });
-                const json = await res.json();
-
-                if (json.result === "success") {
-                    listDiv.innerHTML = "<h3>📋 我的契約列表</h3>";
-
-                    if (json.contracts.length === 0) {
-                        listDiv.innerHTML += "<p>你還沒參加任何契約喔！</p>";
-                        return;
-                    }
-
-                    // 產生列表
-                    json.contracts.forEach(c => {
-                        // 1. 決定顏色與圖示
-                        let statusIcon = "🔥";
-                        let btnColor = "#17a2b8"; // 藍色 (前往)
-                        let btnText = "前往打卡";
-
-                        if (c.status === "PENDING") {
-                            statusIcon = "⏳";
-                            btnText = "等待中";
-                        } else if (c.isDone) {
-                            statusIcon = "✅";
-                            btnColor = "#6c757d"; // 灰色
-                            btnText = "今日已完成";
-                        }
-
-                        // 2. 組合 HTML (包含分享按鈕 + 前往按鈕)
-                        const itemHtml = `
-                        <div style="border:1px solid #ddd; padding:10px; margin-bottom:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
-                            
-                            <div style="flex-grow: 1; margin-right: 10px;">
-                                <strong>${statusIcon} ${c.name}</strong><br>
-                                <span style="font-size:12px; color:#666;">狀態: ${c.status}</span>
-                            </div>
-
-                            <div style="display:flex; gap:5px;">
-                                <button onclick="copyContractLink('${c.id}', '${c.name}')" 
-                                    style="background-color:#ffc107; color:#333; border:none; padding:5px 8px; border-radius:5px; cursor:pointer; font-weight:bold;">
-                                    🔗 分享
-                                </button>
-
-                                <button onclick="window.location.href='?contractId=${c.id}'" 
-                                    style="background-color:${btnColor}; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">
-                                    ${btnText} ▶
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                        listDiv.innerHTML += itemHtml;
-                    });
-
-                } else {
-                    listDiv.innerHTML = "讀取失敗: " + json.message;
-                }
-            } catch (e) {
-                listDiv.innerHTML = "錯誤: " + e;
-            }
-        }
         // --- 輔助功能: 顯示分享頁面 (把原本 submitContract 裡面的邏輯拉出來共用) ---
         function showSharePage(contractId) {
             document.getElementById("createSection").classList.add("hidden");

@@ -167,7 +167,7 @@
     <script>
         // ⚠️ 設定區：請換成你的 ID 和 網址
         const MY_LIFF_ID = "2008852230-BdH1Y5Fl";
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbw-5FD74SPue9q7bmFDgSjccWMnbUVtfYXHGrXFYZJSPU4FI-YpTcCglLRht6KT0xe3XQ/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxnuiMDPWRMYVy7-GlZ_LHd5-OtDY8v69m5cDbE9ckSZynPNjGevwpsrmZ0BJjMaA7dcQ/exec";
         //        http: https://script.google.com/macros/s/AKfycbywn8lGaDhTuQM7JWAPOqS52yW6UmdQxMWVOUzdg27HAntIYFGP0hHPA0lAfIXo2L8G/exec
         // 全域變數
         let userProfile = null;
@@ -278,22 +278,38 @@
                     document.getElementById("showDuration").textContent = data.duration;
 
                     // 4. 顯示成員名單 (加上 Admin 標記)
-                    const listContainer = document.getElementById("memberListDisplay");
-                    let amIInList = false; // 檢查我是否已加入
+                    // ... (前略)
 
-                    members.forEach(member => {
+                    // 4. 顯示成員列表
+                    const listContainer = document.getElementById("memberListDisplay");
+                    listContainer.innerHTML = ""; // 清空舊資料
+                    let amIInList = false;
+
+                    json.members.forEach(member => {
                         const li = document.createElement("li");
-                        // 如果 role 是 Admin，加個皇冠 👑
+                        // 角色圖示
                         const roleIcon = (member.role === "Admin") ? "👑 " : "👤 ";
-                        li.textContent = roleIcon + member.name;
+                        // [新增] 打卡狀態圖示 (如果已完成顯示綠勾勾，否則留空或顯示漏斗)
+                        const statusIcon = member.isDoneToday ? " ✅" : "⏳";
+                        // 組合顯示文字： [角色] [名字] [打卡狀態]
+                        // 例如： 👑 Jade ✅
+                        li.textContent = roleIcon + member.name + statusIcon;
+                        // 針對「未打卡」的人，可以稍微把字變淡一點 (選用)
+                        if (!member.isDoneToday) {
+                            li.style.color = "#666";
+                        } else {
+                            li.style.color = "#198754"; // 打卡的人變綠色
+                            li.style.fontWeight = "bold";
+                        }
+
                         listContainer.appendChild(li);
 
                         // 檢查名字是否跟我一樣 (判斷是否已加入)
-                        // 註：更嚴謹應該比對 UserID，但這裡先比對名字或假設後端沒回傳ID
                         if (member.name === userProfile.displayName) {
                             amIInList = true;
                         }
                     });
+
                     const isCheckedInToday = json.isCheckedInToday;
                     // 5. 關鍵邏輯：決定顯示什麼按鈕
                     document.getElementById("loadingText").classList.add("hidden");
@@ -559,7 +575,7 @@
                 listDiv.innerHTML = "錯誤: " + e;
             }
         }
-        
+
         // --- 輔助功能: 顯示分享頁面 (把原本 submitContract 裡面的邏輯拉出來共用) ---
         function showSharePage(contractId) {
             document.getElementById("createSection").classList.add("hidden");

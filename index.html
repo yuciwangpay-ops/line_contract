@@ -102,10 +102,10 @@
     <div class="container">
 
         <div id="createSection">
-            <h2>🤝 進行中契約</h2>
+            <h2 style="margin-top: 0; margin-bottom: 10px;">🤝 進行中契約</h2>
             <button class="btn" style="background-color: #1d21eb;" onclick="loadMyContracts()">📂 載入我的契約列表</button>
-            <hr style="margin: 30px 0; border: 0; border-top: 1px solid #ddd;">
             <div id="historyList" style="margin-top: 15px;"></div>
+            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
 
             <h2>📝 發起新習慣契約</h2>
             <label>習慣名稱</label>
@@ -288,11 +288,11 @@
                     json.members.forEach(member => {
                         const li = document.createElement("li");
                         // 角色圖示
-                        const roleIcon = (member.role === "Admin") ? "👑 " : "👤 ";
+                        //const roleIcon = (member.role === "Admin") ? "👑 " : "👤 ";
                         // [新增] 打卡狀態圖示 (如果已完成顯示綠勾勾，否則留空或顯示漏斗)
-                        const statusIcon = member.isDoneToday ? " ✅" : "⏳";
+                        const statusIcon = member.isDoneToday ? " 💯" : "🐢";
                         // 組合顯示文字： [角色] [名字] [打卡狀態]
-                        // 例如： 👑 Jade ✅
+                        // 例如： 👑 Jade ✅ 🐢
                         li.textContent = roleIcon + member.name + statusIcon;
                         // 針對「未打卡」的人，可以稍微把字變淡一點 (選用)
                         if (!member.isDoneToday) {

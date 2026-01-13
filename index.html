@@ -495,8 +495,55 @@
                 prompt("請手動複製以下連結分享給朋友：", fullUrl);
             });
         }
+        // --- 功能 H: 列表專用的「一鍵快速打卡」 ---
+        async function quickCheckIn(contractId, contractName, btnElement) {
+            // 1. 馬上鎖住按鈕，避免重複按
+            const originalText = btnElement.textContent;
+            btnElement.disabled = true;
+            btnElement.textContent = "⏳ 打卡中...";
+            btnElement.style.backgroundColor = "#ffc107"; // 變成黃色
 
-        // --- 功能 D (升級版 v3): 載入列表 + 分享 + [新增]詳情按鈕 ---
+            try {
+                // 2. 呼叫 GAS 打卡
+                const res = await fetch(GAS_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        action: "check_in",
+                        contractId: contractId,
+                        userId: userProfile.userId,
+                        userName: userProfile.displayName
+                    })
+                });
+
+                const json = await res.json();
+
+                if (json.result === "success") {
+                    // 3. 成功！變更按鈕外觀
+                    btnElement.textContent = "✅ 已完成";
+                    btnElement.style.backgroundColor = "#6c757d"; // 灰色
+                    alert(`恭喜！「${contractName}」打卡成功！🎉`);
+                } else {
+                    // 失敗 (可能是重複打卡)
+                    alert("打卡失敗：" + json.message);
+                    // 恢復按鈕狀態 (如果是重複打卡，其實可以不用恢復，但為了保險起見)
+                    if (json.message.includes("已經打過")) {
+                        btnElement.textContent = "✅ 已完成";
+                        btnElement.style.backgroundColor = "#6c757d";
+                    } else {
+                        btnElement.disabled = false;
+                        btnElement.textContent = originalText;
+                        btnElement.style.backgroundColor = "#198754"; // 綠色
+                    }
+                }
+            } catch (e) {
+                alert("系統錯誤：" + e);
+                btnElement.disabled = false;
+                btnElement.textContent = originalText;
+                btnElement.style.backgroundColor = "#198754";
+            }
+        }
+        // --- 功能 D (最終版): 列表 + 分享 + 詳情 + [快速打卡] ---
         async function loadMyContracts() {
             const listDiv = document.getElementById("historyList");
             listDiv.innerHTML = "⏳ 正在搜尋你的契約...";
@@ -520,24 +567,38 @@
                         return;
                     }
 
-                    // 產生列表
                     json.contracts.forEach(c => {
-                        // 1. 決定右邊那顆「行動按鈕」的狀態
+                        // 1. 初始按鈕狀態
                         let statusIcon = "🔥";
-                        let btnColor = "#198754"; // 綠色 (預設前往打卡)
-                        let btnText = "打卡去";
+                        let actionBtnHtml = ""; // 這是最右邊那顆按鈕的 HTML
 
                         if (c.status === "PENDING") {
                             statusIcon = "⏳";
-                            btnColor = "#0d6efd"; // 藍色
-                            btnText = "等待中";
+                            // 等待中：按鈕只能跳轉，不能打卡
+                            actionBtnHtml = `
+                            <button onclick="window.location.href='?contractId=${c.id}'" 
+                                style="background-color:#0d6efd; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:12px;">
+                                等待中 ▶
+                            </button>`;
                         } else if (c.isDone) {
                             statusIcon = "✅";
-                            btnColor = "#6c757d"; // 灰色
-                            btnText = "已完成";
+                            // 已完成：按鈕變灰
+                            actionBtnHtml = `
+                            <button disabled
+                                style="background-color:#6c757d; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:not-allowed; font-size:12px;">
+                                ✅ 已完成
+                            </button>`;
+                        } else {
+                            // 進行中且未打卡：顯示「直接打卡」按鈕 (重點在這裡👇)
+                            // 注意：onclick 變成了 quickCheckIn
+                            actionBtnHtml = `
+                            <button onclick="quickCheckIn('${c.id}', '${c.name}', this)" 
+                                style="background-color:#198754; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:12px;">
+                                ✅ 直接打卡
+                            </button>`;
                         }
 
-                        // 2. 組合 HTML (現在有三顆按鈕了)
+                        // 2. 組合 HTML
                         const itemHtml = `
                         <div style="border:1px solid #ddd; padding:10px; margin-bottom:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
                             
@@ -549,7 +610,7 @@
                             <div style="display:flex; gap:5px;">
                                 
                                 <button onclick="copyContractLink('${c.id}', '${c.name}')" 
-                                    style="background-color:#ffc107; color:#333; border:none; padding:5px 8px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;">
+                                    style="background-color:#ffc107; color:#333; border:none; padding:5px 8px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;" title="複製連結">
                                     🔗
                                 </button>
 
@@ -558,10 +619,7 @@
                                     📄 詳情
                                 </button>
 
-                                <button onclick="window.location.href='?contractId=${c.id}'" 
-                                    style="background-color:${btnColor}; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:12px; white-space:nowrap;">
-                                    ${btnText} ▶
-                                </button>
+                                ${actionBtnHtml}
                             </div>
                         </div>
                     `;

@@ -289,11 +289,13 @@
                         const li = document.createElement("li");
                         // 角色圖示
                         //const roleIcon = (member.role === "Admin") ? "👑 " : "👤 ";
+                        const roleIcon = "";
                         // [新增] 打卡狀態圖示 (如果已完成顯示綠勾勾，否則留空或顯示漏斗)
                         const statusIcon = member.isDoneToday ? " 💯" : "🐢";
                         // 組合顯示文字： [角色] [名字] [打卡狀態]
                         // 例如： 👑 Jade ✅ 🐢
-                        li.textContent = roleIcon + member.name + statusIcon;
+                        //li.textContent = roleIcon + member.name + statusIcon;
+                        li.textContent = statusIcon + member.name ;
                         // 針對「未打卡」的人，可以稍微把字變淡一點 (選用)
                         if (!member.isDoneToday) {
                             li.style.color = "#666";

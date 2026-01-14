@@ -167,7 +167,7 @@
     <script>
         // ⚠️ 設定區：請換成你的 ID 和 網址
         const MY_LIFF_ID = "2008852230-BdH1Y5Fl";
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbwiAYCaMbsQa77bmJj0KCARP225vj7WIf0vzoJH18BiGKRiZ2GY4MhUBTPmadzXDIM32A/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzwTZ70xAdPJ0GirXl6qbdbJPd_o768D-vGzhKqwgW1JOylZfedcvAYYLuK7ZKRPsrC-w/exec";
         //        http: https://script.google.com/macros/s/AKfycbywn8lGaDhTuQM7JWAPOqS52yW6UmdQxMWVOUzdg27HAntIYFGP0hHPA0lAfIXo2L8G/exec
         // 全域變數
         let userProfile = null;
@@ -564,7 +564,8 @@
                 btnElement.style.backgroundColor = "#198754";
             }
         }
-        // --- 功能 D (最終版): 列表 + 分享 + 詳情 + [快速打卡] ---
+
+        // --- 功能 D (豪華版): 列表 + 分享 + 詳情 + 快速打卡 + [進度條] ---
         async function loadMyContracts() {
             const listDiv = document.getElementById("historyList");
             listDiv.innerHTML = "⏳ 正在搜尋你的契約...";
@@ -581,21 +582,21 @@
                 const json = await res.json();
 
                 if (json.result === "success") {
-                    listDiv.innerHTML = "<h3>📋 我的契約列表</h3>";
+                    listDiv.innerHTML = ""; // 清空文字
 
                     if (json.contracts.length === 0) {
-                        listDiv.innerHTML += "<p>你還沒參加任何契約喔！</p>";
+                        listDiv.innerHTML = "<p style='text-align:center; color:#999;'>你還沒參加任何契約喔！</p>";
                         return;
                     }
 
                     json.contracts.forEach(c => {
-                        // 1. 初始按鈕狀態
+                        // 1. 準備按鈕邏輯 (維持不變)
                         let statusIcon = "🔥";
-                        let actionBtnHtml = ""; // 這是最右邊那顆按鈕的 HTML
+                        let actionBtnHtml = "";
+                        let safeName = c.name.replace(/'/g, "\\'");
 
                         if (c.status === "PENDING") {
                             statusIcon = "⏳";
-                            // 等待中：按鈕只能跳轉，不能打卡
                             actionBtnHtml = `
                             <button onclick="window.location.href='?contractId=${c.id}'" 
                                 style="background-color:#0d6efd; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:12px;">
@@ -603,46 +604,57 @@
                             </button>`;
                         } else if (c.isDone) {
                             statusIcon = "✅";
-                            // 已完成：按鈕變灰
                             actionBtnHtml = `
-                            <button disabled
-                                style="background-color:#6c757d; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:not-allowed; font-size:12px;">
+                            <button disabled style="background-color:#6c757d; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:not-allowed; font-size:12px;">
                                 ✅ 已完成
                             </button>`;
                         } else {
-                            // [修正] 這裡多加了 replace，防止名字裡有單引號 (') 導致報錯
-                            const safeName = c.name.replace(/'/g, "\\'");
-
                             actionBtnHtml = `
                             <button onclick="quickCheckIn('${c.id}', '${safeName}', this)" 
                                 style="background-color:#198754; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:12px;">
-                                ✅ 打卡
+                                ✅ 直接打卡
                             </button>`;
                         }
 
-                        // 2. 組合 HTML
+                        // 2. [新增] 計算進度條百分比
+                        // 如果還沒開始 (PENDING)，進度就是 0
+                        let percentage = 0;
+                        let progressText = "等待啟動";
+                        let progressColor = "#e9ecef"; // 預設底色
+
+                        if (c.status === "RUNNING") {
+                            const total = c.totalMembers || 1;
+                            const done = c.todayCount || 0;
+                            percentage = Math.round((done / total) * 100);
+                            progressText = `今日進度: ${done} / ${total} 人`;
+
+                            // 如果全部都打卡了，進度條變金色，不然就是綠色
+                            progressColor = (percentage === 100) ? "#ffc107" : "#198754";
+                        }
+
+                        // 3. 組合 HTML
                         const itemHtml = `
-                        <div style="border:1px solid #ddd; padding:10px; margin-bottom:10px; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <div style="border:1px solid #ddd; padding:12px; margin-bottom:12px; border-radius:10px; background:white; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
                             
-                            <div style="flex-grow: 1; margin-right: 10px;">
-                                <strong>${statusIcon} ${c.name}</strong><br>
-                                <span style="font-size:12px; color:#666;">狀態: ${c.status}</span>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                                <div>
+                                    <strong style="font-size:16px;">${statusIcon} ${c.name}</strong>
+                                </div>
+                                <div style="display:flex; gap:5px;">
+                                    <button onclick="copyContractLink('${c.id}', '${safeName}')" style="background-color:#ffc107; color:#333; border:none; padding:5px 8px; border-radius:5px; cursor:pointer;" title="複製連結">🔗</button>
+                                    <button onclick="window.location.href='?contractId=${c.id}'" style="background-color:#17a2b8; color:white; border:none; padding:5px 8px; border-radius:5px; cursor:pointer;">📄</button>
+                                    ${actionBtnHtml}
+                                </div>
                             </div>
 
-                            <div style="display:flex; gap:5px;">
-                                
-                                <button onclick="copyContractLink('${c.id}', '${c.name}')" 
-                                    style="background-color:#ffc107; color:#333; border:none; padding:5px 8px; border-radius:5px; cursor:pointer; font-weight:bold; font-size:12px;" title="複製連結">
-                                    🔗
-                                </button>
-
-                                <button onclick="window.location.href='?contractId=${c.id}'" 
-                                    style="background-color:#17a2b8; color:white; border:none; padding:5px 8px; border-radius:5px; cursor:pointer; font-size:12px;">
-                                    📄 詳情
-                                </button>
-
-                                ${actionBtnHtml}
+                            <div style="font-size:12px; color:#666; margin-bottom:4px; display:flex; justify-content:space-between;">
+                                <span>${progressText}</span>
+                                <span>${percentage}%</span>
                             </div>
+                            <div style="width: 100%; background-color: #e9ecef; border-radius: 4px; height: 8px; overflow: hidden;">
+                                <div style="width: ${percentage}%; background-color: ${progressColor}; height: 100%; transition: width 0.5s ease;"></div>
+                            </div>
+
                         </div>
                     `;
                         listDiv.innerHTML += itemHtml;
@@ -655,7 +667,7 @@
                 listDiv.innerHTML = "錯誤: " + e;
             }
         }
-
+  
         // --- 輔助功能: 顯示分享頁面 (把原本 submitContract 裡面的邏輯拉出來共用) ---
         function showSharePage(contractId) {
             document.getElementById("createSection").classList.add("hidden");

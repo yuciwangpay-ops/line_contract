@@ -155,7 +155,8 @@
 
                 <button id="btnStart" class="btn hidden" style="background-color: #ff9800;" onclick="startContract()">🚀
                     啟動契約 (隊長限定)</button>
-
+                <button id="btnDelete" class="btn hidden" style="background-color: #dc3545; margin-top: 10px;"
+                    onclick="doDeleteContract()">🗑️ 刪除此契約 (隊長限定)</button>
                 <button id="btnCheckIn" class="btn hidden" style="background-color: #28a745;" onclick="doCheckIn()">✅
                     今天任務完成！我要打卡</button>
             </div>
@@ -167,7 +168,7 @@
     <script>
         // ⚠️ 設定區：請換成你的 ID 和 網址
         const MY_LIFF_ID = "2008852230-BdH1Y5Fl";
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzwTZ70xAdPJ0GirXl6qbdbJPd_o768D-vGzhKqwgW1JOylZfedcvAYYLuK7ZKRPsrC-w/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzLGdnl-WO_kjL52naH9jKAm5rYU1rv7qzRFQcwTvClvrnfokrsL1P1_E_xe_zlYWJ1BQ/exec";
         //        http: https://script.google.com/macros/s/AKfycbywn8lGaDhTuQM7JWAPOqS52yW6UmdQxMWVOUzdg27HAntIYFGP0hHPA0lAfIXo2L8G/exec
         // 全域變數
         let userProfile = null;
@@ -361,14 +362,16 @@
                             btnCheckIn.textContent = "✅ 任務完成，我要打卡";
                             btnCheckIn.style.backgroundColor = "#28a745"; // 綠色
                         }
-
+                        if (isCreator) {
+                            document.getElementById("btnDelete").classList.remove("hidden"); // 這裡也要加，進行中也能刪
+                        }
                     } else {
                         // --- 狀態：等待中 (PENDING) ---
-
                         if (isCreator) {
                             // 如果我是隊長 -> 顯示啟動按鈕
                             document.getElementById("btnStart").classList.remove("hidden");
                             document.getElementById("statusMessage").textContent = "👑 隊長，等人齊了就按啟動吧！";
+                            document.getElementById("btnDelete").classList.remove("hidden"); // <--- 秀出刪除鈕
                         } else if (amIInList) {
                             // 如果我已經加入了 -> 顯示等待訊息
                             document.getElementById("statusMessage").textContent = "✅ 你已加入，等待隊長啟動中...";
@@ -667,7 +670,46 @@
                 listDiv.innerHTML = "錯誤: " + e;
             }
         }
-  
+        // --- 功能 I: 執行刪除契約 ---
+        async function doDeleteContract() {
+            // 1. 二次確認 (防呆)
+            if (!confirm("⚠️ 警告：刪除後無法復原！\n\n您確定要永久刪除這個契約，以及所有的成員名單和打卡紀錄嗎？")) {
+                return;
+            }
+
+            const btn = document.getElementById("btnDelete");
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = "🗑️ 刪除中...";
+
+            try {
+                const res = await fetch(GAS_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({
+                        action: "delete_contract", // 呼叫剛寫好的新功能
+                        contractId: currentContractId,
+                        userId: userProfile.userId
+                    })
+                });
+
+                const json = await res.json();
+
+                if (json.result === "success") {
+                    alert("🗑️ 契約已刪除！回到首頁。");
+                    // 刪除後，網址參數還有 contractId 會找不到資料，所以直接回首頁
+                    window.location.href = window.location.pathname;
+                } else {
+                    alert("刪除失敗：" + json.message);
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
+            } catch (e) {
+                alert("錯誤：" + e);
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
         // --- 輔助功能: 顯示分享頁面 (把原本 submitContract 裡面的邏輯拉出來共用) ---
         function showSharePage(contractId) {
             document.getElementById("createSection").classList.add("hidden");

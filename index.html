@@ -287,23 +287,42 @@
 
                     json.members.forEach(member => {
                         const li = document.createElement("li");
-                        // 角色圖示
-                        const roleIcon = (member.role === "Admin") ? "👑 " : "👤 ";
-                        //const roleIcon = "";
-                        // [新增] 打卡狀態圖示 (如果已完成顯示綠勾勾，否則留空或顯示漏斗)
-                        const statusIcon = member.isDoneToday ? " 💯" : "🐢";
-                        // 組合顯示文字： [角色] [名字] [打卡狀態]
-                        // 例如： 👑 Jade ✅ 🐢
-                        li.textContent = roleIcon + member.name + statusIcon;
-                        
-                        // 針對「未打卡」的人，可以稍微把字變淡一點 (選用)
-                        if (!member.isDoneToday) {
-                            li.style.color = "#666";
+
+                        // 1. 定義變數：顯示的圖示 & 顏色
+                        let displayIcon = "";
+                        let textColor = "#333"; // 預設黑色
+                        let textWeight = "normal";
+
+                        // 2. 判斷契約狀態 (使用 data.status)
+                        if (data.status === "RUNNING") {
+                            // --- 🅰️ 狀態：進行中 (RUNNING) ---
+                            // 規則：不顯示角色，只顯示「打卡狀態」在名字前方
+
+                            if (member.isDoneToday) {
+                                displayIcon = "💯 "; // 已打卡
+                                textColor = "#198754"; // 綠色
+                                textWeight = "bold";
+                            } else {
+                                displayIcon = "🐢 "; // 未打卡 (變成烏龜 XD)
+                                textColor = "#666"; // 灰色
+                            }
+
                         } else {
-                            li.style.color = "#198754"; // 打卡的人變綠色
-                            li.style.fontWeight = "bold";
+                            // --- 🅱️ 狀態：等待中/已結束 (PENDING / ENDED) ---
+                            // 規則：顯示「角色圖示」，不顯示打卡狀態
+
+                            displayIcon = (member.role === "Admin") ? "👑 " : "👤 ";
+                            // 顏色維持預設，不用變灰
                         }
 
+                        // 3. 組合文字：圖示 + 名字
+                        li.textContent = displayIcon + member.name;
+
+                        // 4. 套用樣式
+                        li.style.color = textColor;
+                        li.style.fontWeight = textWeight;
+
+                        // 5. 加入清單
                         listContainer.appendChild(li);
 
                         // 檢查名字是否跟我一樣 (判斷是否已加入)

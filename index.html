@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>習慣打卡契約</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -12,7 +12,6 @@
             background-color: #f5f5f5;
             font-size: 16px;
         }
-
         .container {
             max-width: 600px;
             margin: 0 auto;
@@ -21,20 +20,17 @@
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-
         h2 {
             text-align: center;
             color: #333;
         }
-
         label {
             display: block;
             margin-top: 15px;
             font-weight: bold;
             color: #555;
         }
-
-        input {
+        input, select {
             width: 100%;
             padding: 12px;
             font-size: 16px;
@@ -43,8 +39,7 @@
             border-radius: 8px;
             box-sizing: border-box;
         }
-
-        /* 按鈕樣式 */
+        /* 按鈕共用樣式 */
         .btn {
             width: 100%;
             padding: 15px;
@@ -52,30 +47,19 @@
             font-weight: bold;
             border: none;
             border-radius: 8px;
-            margin-top: 30px;
+            margin-top: 15px; /* 稍微調整間距 */
             cursor: pointer;
             color: white;
+            transition: opacity 0.2s;
         }
-
-        .btn-create {
-            background-color: #00B900;
-        }
-
-        /* LINE 綠 */
-        .btn-join {
-            background-color: #007bff;
-        }
-
-        /* 藍色 */
-        .btn:disabled {
-            background-color: #ccc;
-        }
-
-        /* 隱藏區塊用 */
-        .hidden {
-            display: none;
-        }
-
+        .btn:hover { opacity: 0.9; }
+        .btn:disabled { background-color: #ccc !important; cursor: not-allowed; }
+        
+        .btn-create { background-color: #00B900; }
+        .btn-join { background-color: #007bff; }
+        
+        .hidden { display: none; }
+        
         /* 邀請連結區塊 */
         #shareSection {
             text-align: center;
@@ -83,20 +67,19 @@
             padding: 15px;
             border-radius: 8px;
             border: 1px dashed #007bff;
+            margin-top: 20px;
         }
-
         #shareLink {
-            word-break: break-all;
+            width: 100%;
             font-family: monospace;
             background: #fff;
-            padding: 5px;
+            padding: 8px;
             border: 1px solid #ddd;
             margin: 10px 0;
-            display: block;
+            resize: none;
         }
     </style>
 </head>
-
 <body>
 
     <div class="container">
@@ -104,21 +87,33 @@
         <div id="createSection">
             <h2 style="margin-top: 0; margin-bottom: 10px;">🤝 進行中契約</h2>
             <button class="btn" style="background-color: #1d21eb;" onclick="loadMyContracts()">📂 載入我的契約列表</button>
+            
             <div id="historyList" style="margin-top: 15px;"></div>
+            
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
 
             <h2>📝 發起新習慣契約</h2>
+            
             <label>習慣名稱</label>
             <input type="text" id="habitName" placeholder="例如: 早起運動">
+            
             <label>習慣描述</label>
             <input type="text" id="description" placeholder="例如: 晨跑3公里">
+            
             <label>懲罰條款</label>
             <input type="text" id="penalty" placeholder="例如: 請喝咖啡">
+            
             <label>為期幾天</label>
             <input type="number" id="duration" placeholder="21">
+
+            <label>🎮 選擇挑戰遊戲模式</label>
+            <select id="gameType">
+                <option value="Game_A">⚔️ Game_A (勇者打怪)</option>
+                <option value="Game_B">🎲 Game_B (大富翁)</option>
+                <option value="Game_C">🌱 Game_C (養成計畫)</option>
+            </select>
+            
             <button class="btn btn-create" onclick="submitContract()">建立並產生邀請連結</button>
-
-
         </div>
 
         <div id="shareSection" class="hidden">
@@ -126,6 +121,7 @@
             <p>請複製下方連結傳給朋友：</p>
             <textarea id="shareLink" rows="3" readonly></textarea>
             <button class="btn btn-join" onclick="copyLink()">複製連結</button>
+            <button class="btn" style="background-color: #6c757d;" onclick="location.reload()">回到首頁</button>
         </div>
 
         <div id="joinSection" class="hidden">
@@ -133,43 +129,40 @@
 
             <p id="loadingText" style="text-align:center; color:#666;">正在讀取契約與成員...</p>
 
-            <div id="contractDetails" class="hidden"
-                style="background: white; padding: 20px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px;">
+            <div id="contractDetails" class="hidden" style="background: white; padding: 20px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px;">
                 <h3 id="showHabitName" style="margin-top:0; color:#00B900;"></h3>
-
                 <p><strong>📝 內容：</strong><span id="showDesc"></span></p>
                 <p><strong>⚠️ 懲罰：</strong><span id="showPenalty" style="color:red;"></span></p>
                 <p><strong>🗓 天數：</strong><span id="showDuration"></span> 天</p>
-
+                
                 <hr style="border:0; border-top:1px dashed #ccc; margin:15px 0;">
-
+                
                 <h4>👥 目前勇者名單：</h4>
-                <ul id="memberListDisplay" style="text-align:left; padding-left: 20px; color: #555;">
-                </ul>
-
+                <ul id="memberListDisplay" style="text-align:left; padding-left: 20px; color: #555;"></ul>
+                
                 <p id="statusMessage" style="font-weight:bold; color: #666; margin-top:20px;"></p>
             </div>
 
             <div id="actionButtons">
                 <button id="btnJoin" class="btn btn-join hidden" onclick="joinContract()">➕ 沒問題，我要加入！</button>
+                
+                <button id="btnStart" class="btn hidden" style="background-color: #ff9800;" onclick="startContract()">🚀 啟動契約 (隊長限定)</button>
+                
+                <button id="btnDelete" class="btn hidden" style="background-color: #dc3545;" onclick="doDeleteContract()">🗑️ 刪除此契約 (隊長限定)</button>
 
-                <button id="btnStart" class="btn hidden" style="background-color: #ff9800;" onclick="startContract()">🚀
-                    啟動契約 (隊長限定)</button>
-                <button id="btnDelete" class="btn hidden" style="background-color: #dc3545; margin-top: 10px;"
-                    onclick="doDeleteContract()">🗑️ 刪除此契約 (隊長限定)</button>
-                <button id="btnCheckIn" class="btn hidden" style="background-color: #28a745;" onclick="doCheckIn()">✅
-                    今天任務完成！我要打卡</button>
+                <button id="btnCheckIn" class="btn hidden" style="background-color: #28a745;" onclick="doCheckIn()">✅ 今天任務完成！我要打卡</button>
+                
+                <button class="btn" style="background-color: #6c757d; margin-top: 20px;" onclick="window.location.href=window.location.pathname">🏠 回到首頁</button>
             </div>
         </div>
 
     </div>
 
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script>
-        // ⚠️ 設定區：請換成你的 ID 和 網址
-        const MY_LIFF_ID = "2008852230-BdH1Y5Fl";
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzLGdnl-WO_kjL52naH9jKAm5rYU1rv7qzRFQcwTvClvrnfokrsL1P1_E_xe_zlYWJ1BQ/exec";
-        //        http: https://script.google.com/macros/s/AKfycbywn8lGaDhTuQM7JWAPOqS52yW6UmdQxMWVOUzdg27HAntIYFGP0hHPA0lAfIXo2L8G/exec
+        // ⚠️ 設定區：請確認這是你的 LIFF ID 和 GAS URL
+        const MY_LIFF_ID = "2008852230-BdH1Y5Fl"; 
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbyh9KxOpT36UBoHJph7Gv_wD5oZHjRSzx0hsbvDZ2Bme6iAORum9daJQpjweJ_xpUIMTg/exec";
+
         // 全域變數
         let userProfile = null;
         let currentContractId = null;
@@ -184,32 +177,35 @@
 
             userProfile = await liff.getProfile();
 
-            // 檢查網址有沒有帶 contractId (判斷是「發起」還是「加入」)
+            // 檢查網址參數
             const urlParams = new URLSearchParams(window.location.search);
             currentContractId = urlParams.get("contractId");
 
             if (currentContractId) {
-                // ---> 如果有 ID，切換到「加入模式」
-                showJoinMode();
+                showJoinMode(); // 進入詳情/加入模式
             } else {
-                // ---> 如果沒 ID，維持「建立模式」
-                document.getElementById("createSection").classList.remove("hidden");
+                document.getElementById("createSection").classList.remove("hidden"); // 顯示建立/列表模式
             }
         }
         main();
 
-        // --- 功能 A: 發起契約 ---
+        // --- 功能 A: 建立契約 ---
         async function submitContract() {
             const habitName = document.getElementById("habitName").value;
             const description = document.getElementById("description").value;
             const penalty = document.getElementById("penalty").value;
             const duration = document.getElementById("duration").value;
+            const gameType = document.getElementById("gameType").value; // [新增] 遊戲類型
 
-            if (!habitName || !duration) return alert("請填寫完整資訊");
+            if (!habitName || !duration) {
+                alert("請至少填寫習慣名稱和天數！");
+                return;
+            }
 
-            const btn = document.querySelector('.btn-create');
+            const btn = document.querySelector(".btn-create");
+            const originalText = btn.textContent;
             btn.disabled = true;
-            btn.textContent = "處理中...";
+            btn.textContent = "建立中...";
 
             try {
                 const res = await fetch(GAS_URL, {
@@ -222,182 +218,158 @@
                         habitName: habitName,
                         description: description,
                         penalty: penalty,
-                        duration: duration
+                        duration: duration,
+                        gameType: gameType 
                     })
                 });
-                const data = await res.json();
 
-                if (data.result === "success") {
-                    // 隱藏表單，顯示分享連結
-                    document.getElementById("createSection").classList.add("hidden");
-                    document.getElementById("shareSection").classList.remove("hidden");
-
-                    // 組合出邀請連結
-                    const inviteUrl = `https://liff.line.me/${MY_LIFF_ID}?contractId=${data.contractId}`;
-                    document.getElementById("shareLink").value = inviteUrl;
+                const json = await res.json();
+                if (json.result === "success") {
+                    showSharePage(json.contractId); // 顯示分享頁面
+                } else {
+                    alert("錯誤：" + json.message);
+                    btn.disabled = false;
+                    btn.textContent = originalText;
                 }
             } catch (e) {
-                alert("錯誤: " + e);
+                alert("錯誤：" + e);
                 btn.disabled = false;
+                btn.textContent = originalText;
             }
         }
-        // --- 功能 B: 多人版加入介面 (判斷身分與狀態) ---
+
+        // --- 功能 B: 顯示詳情與成員 (房間模式) ---
         async function showJoinMode() {
-            // 1. 切換畫面
             document.getElementById("createSection").classList.add("hidden");
-            const shareSec = document.getElementById("shareSection");
-            if (shareSec) shareSec.classList.add("hidden");
             document.getElementById("joinSection").classList.remove("hidden");
 
-            // 重置按鈕狀態
-            document.getElementById("btnJoin").classList.add("hidden");
-            document.getElementById("btnStart").classList.add("hidden");
-            document.getElementById("statusMessage").textContent = "";
-            document.getElementById("memberListDisplay").innerHTML = ""; // 清空名單
-
             try {
-                // 2. 呼叫 GAS 取得詳情 + 成員名單
                 const res = await fetch(GAS_URL, {
                     method: "POST",
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
                     body: JSON.stringify({
                         action: "get_contract_details",
                         contractId: currentContractId,
-                        userId: userProfile.userId // <--- [新增] 這行很重要！不然 GAS 不知道要查誰
+                        userId: userProfile.userId 
                     })
                 });
                 const json = await res.json();
 
                 if (json.result === "success") {
-                    const data = json.data;     // 契約資料
-                    const members = json.members || []; // 成員名單 (陣列)
+                    const data = json.data;
+                    const members = json.members || [];
+                    const isCheckedInToday = json.isCheckedInToday;
 
-                    // 3. 填寫契約基本資料
+                    // 顯示基本資料
                     document.getElementById("showHabitName").textContent = data.habitName;
                     document.getElementById("showDesc").textContent = data.description;
                     document.getElementById("showPenalty").textContent = data.penalty;
                     document.getElementById("showDuration").textContent = data.duration;
 
-                    // 4. 顯示成員名單 (加上 Admin 標記)
-                    // ... (前略)
-
-                    // 4. 顯示成員列表
+                    // 顯示成員列表
                     const listContainer = document.getElementById("memberListDisplay");
-                    listContainer.innerHTML = ""; // 清空舊資料
+                    listContainer.innerHTML = "";
                     let amIInList = false;
 
-                    json.members.forEach(member => {
+                    members.forEach(member => {
                         const li = document.createElement("li");
-
-                        // 1. 定義變數：顯示的圖示 & 顏色
                         let displayIcon = "";
-                        let textColor = "#333"; // 預設黑色
+                        let textColor = "#333";
                         let textWeight = "normal";
 
-                        // 2. 判斷契約狀態 (使用 data.status)
                         if (data.status === "RUNNING") {
-                            // --- 🅰️ 狀態：進行中 (RUNNING) ---
-                            // 規則：不顯示角色，只顯示「打卡狀態」在名字前方
-
+                            // 進行中：顯示打卡狀態
                             if (member.isDoneToday) {
-                                displayIcon = "💯 "; // 已打卡
-                                textColor = "#198754"; // 綠色
-                                textWeight = "bold";
+                                displayIcon = "💯 "; textColor = "#198754"; textWeight = "bold";
                             } else {
-                                displayIcon = "🐢 "; // 未打卡 (變成烏龜 XD)
-                                textColor = "#666"; // 灰色
+                                displayIcon = "🐢 "; textColor = "#666";
                             }
-
                         } else {
-                            // --- 🅱️ 狀態：等待中/已結束 (PENDING / ENDED) ---
-                            // 規則：顯示「角色圖示」，不顯示打卡狀態
-
+                            // 等待中：顯示角色
                             displayIcon = (member.role === "Admin") ? "👑 " : "👤 ";
-                            // 顏色維持預設，不用變灰
                         }
 
-                        // 3. 組合文字：圖示 + 名字
                         li.textContent = displayIcon + member.name;
-
-                        // 4. 套用樣式
                         li.style.color = textColor;
                         li.style.fontWeight = textWeight;
-
-                        // 5. 加入清單
                         listContainer.appendChild(li);
 
-                        // 檢查名字是否跟我一樣 (判斷是否已加入)
-                        if (member.name === userProfile.displayName) {
-                            amIInList = true;
-                        }
+                        if (member.name === userProfile.displayName) amIInList = true;
                     });
 
-                    const isCheckedInToday = json.isCheckedInToday;
-                    // 5. 關鍵邏輯：決定顯示什麼按鈕
+                    // 顯示 UI
                     document.getElementById("loadingText").classList.add("hidden");
                     document.getElementById("contractDetails").classList.remove("hidden");
 
-                    document.getElementById("btnJoin").classList.add("hidden");
-                    document.getElementById("btnStart").classList.add("hidden");
-                    document.getElementById("btnCheckIn").classList.add("hidden");
-
                     const isCreator = (String(data.creatorId) === String(userProfile.userId));
                     const isRunning = (data.status === "RUNNING");
+                    
+                    // [新增] 檢查過期 (使用瀏覽器時間)
+                    const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+                    const isExpired = (data.endDate && todayStr > data.endDate);
 
                     if (isRunning) {
                         document.getElementById("statusMessage").textContent = "🔥 挑戰進行中，別忘了每天打卡喔！";
-                        document.getElementById("statusMessage").style.color = "#d63384"; // 換個熱血的顏
+                        document.getElementById("statusMessage").style.color = "#d63384";
+                        
+                        // 顯示日期範圍
+                        if (data.startDate && data.endDate) {
+                             document.getElementById("statusMessage").innerHTML += `<br><span style="font-size:14px; color:#666">📅 期限：${data.startDate} ~ ${data.endDate}</span>`;
+                        }
 
+                        // 打卡按鈕控制
                         const btnCheckIn = document.getElementById("btnCheckIn");
                         btnCheckIn.classList.remove("hidden");
 
-                        // [新增] 如果今天已經打過卡，直接把按鈕鎖住
-                        if (isCheckedInToday) {
+                        if (isExpired) {
+                            // 🛑 過期鎖定
+                            btnCheckIn.disabled = true;
+                            btnCheckIn.textContent = "🚫 契約已結束";
+                            btnCheckIn.style.backgroundColor = "#6c757d";
+                        } else if (isCheckedInToday) {
+                            // ✅ 已打卡鎖定
                             btnCheckIn.disabled = true;
                             btnCheckIn.textContent = "✅ 今日已打卡";
-                            btnCheckIn.style.backgroundColor = "#6c757d"; // 灰色
+                            btnCheckIn.style.backgroundColor = "#6c757d";
                         } else {
-                            // 沒打過卡，顯示綠色按鈕
+                            // 🔥 可打卡
                             btnCheckIn.disabled = false;
                             btnCheckIn.textContent = "✅ 任務完成，我要打卡";
-                            btnCheckIn.style.backgroundColor = "#28a745"; // 綠色
+                            btnCheckIn.style.backgroundColor = "#28a745";
                         }
+                        
+                        // 進行中隊長也能刪除
                         if (isCreator) {
-                            document.getElementById("btnDelete").classList.remove("hidden"); // 這裡也要加，進行中也能刪
+                             document.getElementById("btnDelete").classList.remove("hidden");
                         }
+
                     } else {
-                        // --- 狀態：等待中 (PENDING) ---
+                        // 等待中 (PENDING)
                         if (isCreator) {
-                            // 如果我是隊長 -> 顯示啟動按鈕
                             document.getElementById("btnStart").classList.remove("hidden");
+                            document.getElementById("btnDelete").classList.remove("hidden");
                             document.getElementById("statusMessage").textContent = "👑 隊長，等人齊了就按啟動吧！";
-                            document.getElementById("btnDelete").classList.remove("hidden"); // <--- 秀出刪除鈕
                         } else if (amIInList) {
-                            // 如果我已經加入了 -> 顯示等待訊息
                             document.getElementById("statusMessage").textContent = "✅ 你已加入，等待隊長啟動中...";
                             document.getElementById("statusMessage").style.color = "green";
                         } else {
-                            // 如果我是路人 -> 顯示加入按鈕
                             document.getElementById("btnJoin").classList.remove("hidden");
                         }
                     }
 
                 } else {
-                    document.getElementById("loadingText").textContent = "❌ 找不到契約";
+                    document.getElementById("loadingText").textContent = "❌ 讀取失敗: " + json.message;
                 }
-
             } catch (e) {
-                console.error(e);
                 document.getElementById("loadingText").textContent = "錯誤: " + e;
             }
         }
-        // --- 功能 C: 執行加入 (正式版) ---
+
+        // --- 功能 C: 加入契約 ---
         async function joinContract() {
             if (!currentContractId) return;
-
             const btn = document.getElementById("btnJoin");
-            btn.disabled = true;
-            btn.textContent = "加入中...";
+            btn.disabled = true; btn.textContent = "加入中...";
 
             try {
                 const res = await fetch(GAS_URL, {
@@ -411,29 +383,24 @@
                     })
                 });
                 const data = await res.json();
-
                 if (data.result === "success") {
-                    alert("🎉 恭喜！你已成功加入挑戰！\n即將開始你們的習慣養成之旅！");
-                    liff.closeWindow(); // 關閉視窗，讓他們回到聊天室
+                    alert("🎉 加入成功！");
+                    location.reload();
                 } else {
-                    alert("加入失敗: " + data.message);
-                    btn.disabled = false;
-                    btn.textContent = "我要加入！";
+                    alert("失敗: " + data.message);
+                    btn.disabled = false; btn.textContent = "➕ 沒問題，我要加入！";
                 }
             } catch (e) {
                 alert("錯誤: " + e);
-                btn.disabled = false;
-                btn.textContent = "我要加入！";
+                btn.disabled = false; btn.textContent = "➕ 沒問題，我要加入！";
             }
         }
 
-        // --- 功能 D: 隊長啟動契約 ---
+        // --- 功能 D: 啟動契約 ---
         async function startContract() {
-            if (!confirm("確定要啟動契約嗎？\n啟動後就不能再加入新成員囉！")) return;
-
+            if (!confirm("確定要啟動嗎？啟動後就無法再加入新人囉！")) return;
             const btn = document.getElementById("btnStart");
-            btn.disabled = true;
-            btn.textContent = "啟動中...";
+            btn.disabled = true; btn.textContent = "啟動中...";
 
             try {
                 const res = await fetch(GAS_URL, {
@@ -442,136 +409,87 @@
                     body: JSON.stringify({
                         action: "start_contract",
                         contractId: currentContractId,
-                        userId: userProfile.userId // 用來驗證是否為隊長
+                        userId: userProfile.userId
                     })
                 });
                 const data = await res.json();
-
                 if (data.result === "success") {
-                    alert("🚀 契約正式啟動！\n大家可以開始打卡囉！");
-                    location.reload(); // 重新整理頁面，更新狀態
+                    alert("🚀 契約已啟動！");
+                    location.reload();
                 } else {
-                    alert("啟動失敗: " + data.message);
-                    btn.disabled = false;
-                    btn.textContent = "🚀 啟動契約 (隊長限定)";
+                    alert("失敗: " + data.message);
+                    btn.disabled = false; btn.textContent = "🚀 啟動契約 (隊長限定)";
                 }
             } catch (e) {
                 alert("錯誤: " + e);
-                btn.disabled = false;
+                btn.disabled = false; btn.textContent = "🚀 啟動契約 (隊長限定)";
             }
         }
-        // 小工具: 複製連結
-        function copyLink() {
-            const copyText = document.getElementById("shareLink");
-            copyText.select();
-            document.execCommand("copy");
-            alert("連結已複製！快去傳給朋友吧！");
-        }
 
-
-        // --- 功能 E: 執行打卡 (它是獨立的！) ---
+        // --- 功能 E: 房間內打卡 ---
         async function doCheckIn() {
-            console.log("按鈕被按下了！"); // 加這行來測試
-
             const btn = document.getElementById("btnCheckIn");
-            btn.disabled = true;
-            btn.textContent = "打卡中...";
-            btn.style.backgroundColor = "#6c757d"; // 變灰色
+            btn.disabled = true; btn.textContent = "打卡中...";
 
             try {
-                // ... (原本的 fetch 程式碼) ...
                 const res = await fetch(GAS_URL, {
                     method: "POST",
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
                     body: JSON.stringify({
-                        action: "log_time",
+                        action: "log_time", // 注意：這裡是 log_time，後端要對應
                         contractId: currentContractId,
                         userId: userProfile.userId,
                         userName: userProfile.displayName
                     })
                 });
                 const data = await res.json();
-
                 if (data.result === "success") {
                     alert("🎉 打卡成功！");
-                    btn.textContent = "✅ 今日已打卡";
+                    location.reload();
                 } else {
-                    alert("打卡失敗: " + data.message);
-                    btn.disabled = false;
-                    btn.textContent = "✅ 今天任務完成了！我要打卡";
-                    btn.style.backgroundColor = "#28a745"; // 變回綠色
+                    alert("失敗: " + data.message);
+                    btn.disabled = false; btn.textContent = "✅ 今天任務完成！我要打卡";
                 }
-
             } catch (e) {
                 alert("錯誤: " + e);
-                btn.disabled = false;
+                btn.disabled = false; btn.textContent = "✅ 今天任務完成！我要打卡";
             }
-        } // 2. 這裡也要有一個結尾括號！
-
-        // --- 功能 G: 複製契約連結 (這個是新朋友，要留著) ---
-        function copyContractLink(contractId, contractName) {
-            const baseUrl = window.location.href.split('?')[0];
-            const fullUrl = `${baseUrl}?contractId=${contractId}`;
-
-            navigator.clipboard.writeText(fullUrl).then(() => {
-                alert(`已複製「${contractName}」的邀請連結！\n\n👇 連結長這樣：\n${fullUrl}\n\n趕快去貼給朋友吧！`);
-            }).catch(err => {
-                prompt("請手動複製以下連結分享給朋友：", fullUrl);
-            });
         }
-        // --- 功能 H: 列表專用的「一鍵快速打卡」 ---
-        async function quickCheckIn(contractId, contractName, btnElement) {
-            // 1. 馬上鎖住按鈕，避免重複按
-            const originalText = btnElement.textContent;
-            btnElement.disabled = true;
-            btnElement.textContent = "⏳ 打卡中...";
-            btnElement.style.backgroundColor = "#ffc107"; // 變成黃色
+
+        // --- 功能 F: 刪除契約 ---
+        async function doDeleteContract() {
+            if (!confirm("⚠️ 警告：刪除後無法復原！\n\n確定要刪除嗎？")) return;
+            const btn = document.getElementById("btnDelete");
+            btn.disabled = true; btn.textContent = "刪除中...";
 
             try {
-                // 2. 呼叫 GAS 打卡
                 const res = await fetch(GAS_URL, {
                     method: "POST",
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
                     body: JSON.stringify({
-                        action: "check_in",
-                        contractId: contractId,
-                        userId: userProfile.userId,
-                        userName: userProfile.displayName
+                        action: "delete_contract",
+                        contractId: currentContractId,
+                        userId: userProfile.userId
                     })
                 });
-
-                const json = await res.json();
-
-                if (json.result === "success") {
-                    // 3. 成功！變更按鈕外觀
-                    btnElement.textContent = "✅ 已完成";
-                    btnElement.style.backgroundColor = "#6c757d"; // 灰色
-                    alert(`恭喜！「${contractName}」打卡成功！🎉`);
+                const data = await res.json();
+                if (data.result === "success") {
+                    alert("🗑️ 已刪除！回到首頁。");
+                    window.location.href = window.location.pathname;
                 } else {
-                    // 失敗 (可能是重複打卡)
-                    alert("打卡失敗：" + json.message);
-                    // 恢復按鈕狀態 (如果是重複打卡，其實可以不用恢復，但為了保險起見)
-                    if (json.message.includes("已經打過")) {
-                        btnElement.textContent = "✅ 已完成";
-                        btnElement.style.backgroundColor = "#6c757d";
-                    } else {
-                        btnElement.disabled = false;
-                        btnElement.textContent = originalText;
-                        btnElement.style.backgroundColor = "#198754"; // 綠色
-                    }
+                    alert("失敗: " + data.message);
+                    btn.disabled = false; btn.textContent = "🗑️ 刪除此契約 (隊長限定)";
                 }
             } catch (e) {
-                alert("系統錯誤：" + e);
-                btnElement.disabled = false;
-                btnElement.textContent = originalText;
-                btnElement.style.backgroundColor = "#198754";
+                alert("錯誤: " + e);
+                btn.disabled = false; btn.textContent = "🗑️ 刪除此契約 (隊長限定)";
             }
         }
 
-        // --- 功能 D (豪華版): 列表 + 分享 + 詳情 + 快速打卡 + [進度條] ---
+        // --- 功能 G: 載入我的契約列表 ---
         async function loadMyContracts() {
             const listDiv = document.getElementById("historyList");
-            listDiv.innerHTML = "⏳ 正在搜尋你的契約...";
+            listDiv.innerHTML = "⏳ 正在搜尋...";
 
             try {
                 const res = await fetch(GAS_URL, {
@@ -585,84 +503,64 @@
                 const json = await res.json();
 
                 if (json.result === "success") {
-                    listDiv.innerHTML = ""; // 清空文字
-
+                    listDiv.innerHTML = "";
                     if (json.contracts.length === 0) {
                         listDiv.innerHTML = "<p style='text-align:center; color:#999;'>你還沒參加任何契約喔！</p>";
                         return;
                     }
 
                     json.contracts.forEach(c => {
-                        // 1. 準備按鈕邏輯 (維持不變)
+                        const todayStr = new Date().toLocaleDateString('en-CA');
+                        const isExpired = (c.endDate && todayStr > c.endDate);
                         let statusIcon = "🔥";
                         let actionBtnHtml = "";
                         let safeName = c.name.replace(/'/g, "\\'");
 
                         if (c.status === "PENDING") {
                             statusIcon = "⏳";
-                            actionBtnHtml = `
-                            <button onclick="window.location.href='?contractId=${c.id}'" 
-                                style="background-color:#0d6efd; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:12px;">
-                                等待中 ▶
-                            </button>`;
+                            actionBtnHtml = `<button onclick="window.location.href='?contractId=${c.id}'" style="background-color:#0d6efd; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">等待中 ▶</button>`;
+                        } else if (isExpired) {
+                            statusIcon = "🏁";
+                            actionBtnHtml = `<button disabled style="background-color:#6c757d; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:not-allowed;">🚫 已截止</button>`;
                         } else if (c.isDone) {
                             statusIcon = "✅";
-                            actionBtnHtml = `
-                            <button disabled style="background-color:#6c757d; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:not-allowed; font-size:12px;">
-                                ✅ 已完成
-                            </button>`;
+                            actionBtnHtml = `<button disabled style="background-color:#6c757d; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:not-allowed;">✅ 已完成</button>`;
                         } else {
-                            actionBtnHtml = `
-                            <button onclick="quickCheckIn('${c.id}', '${safeName}', this)" 
-                                style="background-color:#198754; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:12px;">
-                                ✅ 直接打卡
-                            </button>`;
+                            actionBtnHtml = `<button onclick="quickCheckIn('${c.id}', '${safeName}', this)" style="background-color:#198754; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">✅ 直接打卡</button>`;
                         }
 
-                        // 2. [新增] 計算進度條百分比
-                        // 如果還沒開始 (PENDING)，進度就是 0
+                        // 進度條計算
                         let percentage = 0;
                         let progressText = "等待啟動";
-                        let progressColor = "#e9ecef"; // 預設底色
+                        let progressColor = "#e9ecef";
 
                         if (c.status === "RUNNING") {
                             const total = c.totalMembers || 1;
                             const done = c.todayCount || 0;
                             percentage = Math.round((done / total) * 100);
                             progressText = `今日進度: ${done} / ${total} 人`;
-
-                            // 如果全部都打卡了，進度條變金色，不然就是綠色
                             progressColor = (percentage === 100) ? "#ffc107" : "#198754";
                         }
 
-                        // 3. 組合 HTML
-                        const itemHtml = `
-                        <div style="border:1px solid #ddd; padding:12px; margin-bottom:12px; border-radius:10px; background:white; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                            
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-                                <div>
-                                    <strong style="font-size:16px;">${statusIcon} ${c.name}</strong>
+                        listDiv.innerHTML += `
+                            <div style="border:1px solid #ddd; padding:12px; margin-bottom:12px; border-radius:10px; background:white; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                                    <div><strong style="font-size:16px;">${statusIcon} ${c.name}</strong></div>
+                                    <div style="display:flex; gap:5px;">
+                                        <button onclick="copyContractLink('${c.id}', '${safeName}')" style="background-color:#ffc107; color:#333; border:none; padding:5px 8px; border-radius:5px; cursor:pointer;">🔗</button>
+                                        <button onclick="window.location.href='?contractId=${c.id}'" style="background-color:#17a2b8; color:white; border:none; padding:5px 8px; border-radius:5px; cursor:pointer;">📄</button>
+                                        ${actionBtnHtml}
+                                    </div>
                                 </div>
-                                <div style="display:flex; gap:5px;">
-                                    <button onclick="copyContractLink('${c.id}', '${safeName}')" style="background-color:#ffc107; color:#333; border:none; padding:5px 8px; border-radius:5px; cursor:pointer;" title="複製連結">🔗</button>
-                                    <button onclick="window.location.href='?contractId=${c.id}'" style="background-color:#17a2b8; color:white; border:none; padding:5px 8px; border-radius:5px; cursor:pointer;">📄</button>
-                                    ${actionBtnHtml}
+                                <div style="font-size:12px; color:#666; margin-bottom:4px; display:flex; justify-content:space-between;">
+                                    <span>${progressText}</span><span>${percentage}%</span>
+                                </div>
+                                <div style="width: 100%; background-color: #e9ecef; border-radius: 4px; height: 8px; overflow: hidden;">
+                                    <div style="width: ${percentage}%; background-color: ${progressColor}; height: 100%; transition: width 0.5s ease;"></div>
                                 </div>
                             </div>
-
-                            <div style="font-size:12px; color:#666; margin-bottom:4px; display:flex; justify-content:space-between;">
-                                <span>${progressText}</span>
-                                <span>${percentage}%</span>
-                            </div>
-                            <div style="width: 100%; background-color: #e9ecef; border-radius: 4px; height: 8px; overflow: hidden;">
-                                <div style="width: ${percentage}%; background-color: ${progressColor}; height: 100%; transition: width 0.5s ease;"></div>
-                            </div>
-
-                        </div>
-                    `;
-                        listDiv.innerHTML += itemHtml;
+                        `;
                     });
-
                 } else {
                     listDiv.innerHTML = "讀取失敗: " + json.message;
                 }
@@ -670,56 +568,74 @@
                 listDiv.innerHTML = "錯誤: " + e;
             }
         }
-        // --- 功能 I: 執行刪除契約 ---
-        async function doDeleteContract() {
-            // 1. 二次確認 (防呆)
-            if (!confirm("⚠️ 警告：刪除後無法復原！\n\n您確定要永久刪除這個契約，以及所有的成員名單和打卡紀錄嗎？")) {
-                return;
-            }
 
-            const btn = document.getElementById("btnDelete");
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.textContent = "🗑️ 刪除中...";
+        // --- 功能 H: 列表快速打卡 ---
+        async function quickCheckIn(contractId, contractName, btnElement) {
+            const originalText = btnElement.textContent;
+            btnElement.disabled = true;
+            btnElement.textContent = "⏳...";
+            btnElement.style.backgroundColor = "#ffc107";
 
             try {
                 const res = await fetch(GAS_URL, {
                     method: "POST",
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
                     body: JSON.stringify({
-                        action: "delete_contract", // 呼叫剛寫好的新功能
-                        contractId: currentContractId,
-                        userId: userProfile.userId
+                        action: "check_in", // 這裡是用 check_in
+                        contractId: contractId,
+                        userId: userProfile.userId,
+                        userName: userProfile.displayName
                     })
                 });
-
                 const json = await res.json();
-
                 if (json.result === "success") {
-                    alert("🗑️ 契約已刪除！回到首頁。");
-                    // 刪除後，網址參數還有 contractId 會找不到資料，所以直接回首頁
-                    window.location.href = window.location.pathname;
+                    btnElement.textContent = "✅";
+                    btnElement.style.backgroundColor = "#6c757d";
+                    alert(`「${contractName}」打卡成功！🎉`);
                 } else {
-                    alert("刪除失敗：" + json.message);
-                    btn.disabled = false;
-                    btn.textContent = originalText;
+                    alert("失敗：" + json.message);
+                    if (json.message.includes("已經打過")) {
+                        btnElement.textContent = "✅";
+                        btnElement.style.backgroundColor = "#6c757d";
+                    } else {
+                        btnElement.disabled = false;
+                        btnElement.textContent = originalText;
+                        btnElement.style.backgroundColor = "#198754";
+                    }
                 }
             } catch (e) {
                 alert("錯誤：" + e);
-                btn.disabled = false;
-                btn.textContent = originalText;
+                btnElement.disabled = false;
+                btnElement.textContent = originalText;
+                btnElement.style.backgroundColor = "#198754";
             }
         }
-        // --- 輔助功能: 顯示分享頁面 (把原本 submitContract 裡面的邏輯拉出來共用) ---
+
+        // --- 輔助: 顯示分享頁 ---
         function showSharePage(contractId) {
             document.getElementById("createSection").classList.add("hidden");
             document.getElementById("shareSection").classList.remove("hidden");
-
             const inviteUrl = `https://liff.line.me/${MY_LIFF_ID}?contractId=${contractId}`;
             document.getElementById("shareLink").value = inviteUrl;
         }
+
+        // --- 輔助: 複製連結 ---
+        function copyLink() {
+            const copyText = document.getElementById("shareLink");
+            copyText.select();
+            document.execCommand("copy");
+            alert("連結已複製！");
+        }
+        
+        // --- 輔助: 列表中的複製連結 ---
+        function copyContractLink(contractId, contractName) {
+            const inviteUrl = `https://liff.line.me/${MY_LIFF_ID}?contractId=${contractId}`;
+            navigator.clipboard.writeText(inviteUrl).then(() => {
+                alert(`已複製「${contractName}」的邀請連結！`);
+            }).catch(() => {
+                prompt("請手動複製:", inviteUrl);
+            });
+        }
     </script>
-
 </body>
-
 </html>

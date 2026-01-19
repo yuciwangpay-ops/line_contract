@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,6 +13,7 @@
             background-color: #f5f5f5;
             font-size: 16px;
         }
+
         .container {
             max-width: 600px;
             margin: 0 auto;
@@ -20,17 +22,21 @@
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
+
         h2 {
             text-align: center;
             color: #333;
         }
+
         label {
             display: block;
             margin-top: 15px;
             font-weight: bold;
             color: #555;
         }
-        input, select {
+
+        input,
+        select {
             width: 100%;
             padding: 12px;
             font-size: 16px;
@@ -39,6 +45,7 @@
             border-radius: 8px;
             box-sizing: border-box;
         }
+
         /* 按鈕共用樣式 */
         .btn {
             width: 100%;
@@ -47,19 +54,34 @@
             font-weight: bold;
             border: none;
             border-radius: 8px;
-            margin-top: 15px; /* 稍微調整間距 */
+            margin-top: 15px;
+            /* 稍微調整間距 */
             cursor: pointer;
             color: white;
             transition: opacity 0.2s;
         }
-        .btn:hover { opacity: 0.9; }
-        .btn:disabled { background-color: #ccc !important; cursor: not-allowed; }
-        
-        .btn-create { background-color: #00B900; }
-        .btn-join { background-color: #007bff; }
-        
-        .hidden { display: none; }
-        
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn:disabled {
+            background-color: #ccc !important;
+            cursor: not-allowed;
+        }
+
+        .btn-create {
+            background-color: #00B900;
+        }
+
+        .btn-join {
+            background-color: #007bff;
+        }
+
+        .hidden {
+            display: none;
+        }
+
         /* 邀請連結區塊 */
         #shareSection {
             text-align: center;
@@ -69,6 +91,7 @@
             border: 1px dashed #007bff;
             margin-top: 20px;
         }
+
         #shareLink {
             width: 100%;
             font-family: monospace;
@@ -80,6 +103,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="container">
@@ -87,22 +111,22 @@
         <div id="createSection">
             <h2 style="margin-top: 0; margin-bottom: 10px;">🤝 進行中契約</h2>
             <button class="btn" style="background-color: #1d21eb;" onclick="loadMyContracts()">📂 載入我的契約列表</button>
-            
+
             <div id="historyList" style="margin-top: 15px;"></div>
-            
+
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
 
             <h2>📝 發起新習慣契約</h2>
-            
+
             <label>習慣名稱</label>
             <input type="text" id="habitName" placeholder="例如: 早起運動">
-            
+
             <label>習慣描述</label>
             <input type="text" id="description" placeholder="例如: 晨跑3公里">
-            
+
             <label>懲罰條款</label>
             <input type="text" id="penalty" placeholder="例如: 請喝咖啡">
-            
+
             <label>為期幾天</label>
             <input type="number" id="duration" placeholder="21">
 
@@ -112,7 +136,7 @@
                 <option value="Game_B">🎲 Game_B (大富翁)</option>
                 <option value="Game_C">🌱 Game_C (養成計畫)</option>
             </select>
-            
+
             <button class="btn btn-create" onclick="submitContract()">建立並產生邀請連結</button>
         </div>
 
@@ -129,30 +153,35 @@
 
             <p id="loadingText" style="text-align:center; color:#666;">正在讀取契約與成員...</p>
 
-            <div id="contractDetails" class="hidden" style="background: white; padding: 20px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px;">
+            <div id="contractDetails" class="hidden"
+                style="background: white; padding: 20px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px;">
                 <h3 id="showHabitName" style="margin-top:0; color:#00B900;"></h3>
                 <p><strong>📝 內容：</strong><span id="showDesc"></span></p>
                 <p><strong>⚠️ 懲罰：</strong><span id="showPenalty" style="color:red;"></span></p>
                 <p><strong>🗓 天數：</strong><span id="showDuration"></span> 天</p>
-                
+
                 <hr style="border:0; border-top:1px dashed #ccc; margin:15px 0;">
-                
+
                 <h4>👥 目前勇者名單：</h4>
                 <ul id="memberListDisplay" style="text-align:left; padding-left: 20px; color: #555;"></ul>
-                
+
                 <p id="statusMessage" style="font-weight:bold; color: #666; margin-top:20px;"></p>
             </div>
 
             <div id="actionButtons">
                 <button id="btnJoin" class="btn btn-join hidden" onclick="joinContract()">➕ 沒問題，我要加入！</button>
-                
-                <button id="btnStart" class="btn hidden" style="background-color: #ff9800;" onclick="startContract()">🚀 啟動契約 (隊長限定)</button>
-                
-                <button id="btnDelete" class="btn hidden" style="background-color: #dc3545;" onclick="doDeleteContract()">🗑️ 刪除此契約 (隊長限定)</button>
 
-                <button id="btnCheckIn" class="btn hidden" style="background-color: #28a745;" onclick="doCheckIn()">✅ 今天任務完成！我要打卡</button>
-                
-                <button class="btn" style="background-color: #6c757d; margin-top: 20px;" onclick="window.location.href=window.location.pathname">🏠 回到首頁</button>
+                <button id="btnStart" class="btn hidden" style="background-color: #ff9800;" onclick="startContract()">🚀
+                    啟動契約 (隊長限定)</button>
+
+                <button id="btnDelete" class="btn hidden" style="background-color: #dc3545;"
+                    onclick="doDeleteContract()">🗑️ 刪除此契約 (隊長限定)</button>
+
+                <button id="btnCheckIn" class="btn hidden" style="background-color: #28a745;" onclick="doCheckIn()">✅
+                    今天任務完成！我要打卡</button>
+
+                <button class="btn" style="background-color: #6c757d; margin-top: 20px;"
+                    onclick="window.location.href=window.location.pathname">🏠 回到首頁</button>
             </div>
         </div>
 
@@ -160,7 +189,7 @@
 
     <script>
         // ⚠️ 設定區：請確認這是你的 LIFF ID 和 GAS URL
-        const MY_LIFF_ID = "2008852230-BdH1Y5Fl"; 
+        const MY_LIFF_ID = "2008852230-BdH1Y5Fl";
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwAwqRtPZ6ETPkjdnFGTpSIG2lfk_C1TOZaVKp3ykk4AKwUNiJFOXii_0jTUKWYzOJGZQ/exec";
 
         // 全域變數
@@ -174,9 +203,7 @@
                 liff.login();
                 return;
             }
-
             userProfile = await liff.getProfile();
-
             // 檢查網址參數
             const urlParams = new URLSearchParams(window.location.search);
             currentContractId = urlParams.get("contractId");
@@ -185,8 +212,27 @@
                 showJoinMode(); // 進入詳情/加入模式
             } else {
                 document.getElementById("createSection").classList.remove("hidden"); // 顯示建立/列表模式
+                // [新增] 檢查是否已經傳送過指令 (避免重新整理網頁時一直傳)
+                // 這裡可以用 sessionStorage 或 URL 參數來判斷
+                if (!sessionStorage.getItem("msgSent")) {
+                    try {
+                        await liff.sendMessages([
+                            {
+                                type: 'text',
+                                text: '#習慣契約' // 👈 這就是 n8n 會收到的文字
+                            }
+                        ]);
+                        console.log("訊息已發送");
+                        sessionStorage.setItem("msgSent", "true"); // 標記已發送
+                    } catch (err) {
+                        console.error("發送失敗，可能是沒有權限", err);
+                        // 這裡可能需要提示使用者去開啟權限
+                    }
+                }
             }
+
         }
+
         main();
 
         // --- 功能 A: 建立契約 ---
@@ -219,7 +265,7 @@
                         description: description,
                         penalty: penalty,
                         duration: duration,
-                        gameType: gameType 
+                        gameType: gameType
                     })
                 });
 
@@ -250,7 +296,7 @@
                     body: JSON.stringify({
                         action: "get_contract_details",
                         contractId: currentContractId,
-                        userId: userProfile.userId 
+                        userId: userProfile.userId
                     })
                 });
                 const json = await res.json();
@@ -303,7 +349,7 @@
 
                     const isCreator = (String(data.creatorId) === String(userProfile.userId));
                     const isRunning = (data.status === "RUNNING");
-                    
+
                     // [新增] 檢查過期 (使用瀏覽器時間)
                     const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
                     const isExpired = (data.endDate && todayStr > data.endDate);
@@ -311,10 +357,10 @@
                     if (isRunning) {
                         document.getElementById("statusMessage").textContent = "🔥 挑戰進行中，別忘了每天打卡喔！";
                         document.getElementById("statusMessage").style.color = "#d63384";
-                        
+
                         // 顯示日期範圍
                         if (data.startDate && data.endDate) {
-                             document.getElementById("statusMessage").innerHTML += `<br><span style="font-size:14px; color:#666">📅 期限：${data.startDate} ~ ${data.endDate}</span>`;
+                            document.getElementById("statusMessage").innerHTML += `<br><span style="font-size:14px; color:#666">📅 期限：${data.startDate} ~ ${data.endDate}</span>`;
                         }
 
                         // 打卡按鈕控制
@@ -337,10 +383,10 @@
                             btnCheckIn.textContent = "✅ 任務完成，我要打卡";
                             btnCheckIn.style.backgroundColor = "#28a745";
                         }
-                        
+
                         // 進行中隊長也能刪除
                         if (isCreator) {
-                             document.getElementById("btnDelete").classList.remove("hidden");
+                            document.getElementById("btnDelete").classList.remove("hidden");
                         }
 
                     } else {
@@ -626,7 +672,7 @@
             document.execCommand("copy");
             alert("連結已複製！");
         }
-        
+
         // --- 輔助: 列表中的複製連結 ---
         function copyContractLink(contractId, contractName) {
             const inviteUrl = `https://liff.line.me/${MY_LIFF_ID}?contractId=${contractId}`;
@@ -638,4 +684,5 @@
         }
     </script>
 </body>
+
 </html>

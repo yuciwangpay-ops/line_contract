@@ -193,7 +193,7 @@
         // ⚠️ 設定區：請確認這是你的 LIFF ID 和 GAS URL
         const MY_LIFF_ID = "2008852230-BdH1Y5Fl";
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwAwqRtPZ6ETPkjdnFGTpSIG2lfk_C1TOZaVKp3ykk4AKwUNiJFOXii_0jTUKWYzOJGZQ/exec";
-
+        const GAME_LIFF_URL = "https://liff.line.me/2008941439-M9ODe8F0"; 
         // 全域變數
         let userProfile = null;
         let currentContractId = null;
@@ -233,6 +233,17 @@
                 }
             }
 
+        }
+
+        function goToGamePage() {
+            if (!currentContractId) {
+                alert("錯誤：找不到契約 ID，無法跳轉");
+                return;
+            }
+            // 組合目標網址 (把 contractId 帶過去)
+            const targetUrl = `${GAME_LIFF_URL}?contractId=${currentContractId}`;
+            // 執行跳轉
+            window.location.href = targetUrl;
         }
 
         main();

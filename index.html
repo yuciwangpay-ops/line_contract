@@ -193,7 +193,7 @@
         // ⚠️ 設定區：請確認這是你的 LIFF ID 和 GAS URL
         const MY_LIFF_ID = "2008852230-BdH1Y5Fl";
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwAwqRtPZ6ETPkjdnFGTpSIG2lfk_C1TOZaVKp3ykk4AKwUNiJFOXii_0jTUKWYzOJGZQ/exec";
-        const GAME_LIFF_URL = "https://liff.line.me/2008941439-M9ODe8F0"; 
+        const GAME_LIFF_URL = "https://liff.line.me/2008941439-M9ODe8F0";
         // 全域變數
         let userProfile = null;
         let currentContractId = null;
@@ -250,6 +250,10 @@
 
         // --- 功能 A: 建立契約 ---
         async function submitContract() {
+            if (!userProfile) {
+                alert("⏳ 正在讀取 LINE 使用者資料，請稍等 1 秒後再試！");
+                return; // 直接結束，不讓程式往下跑
+            }
             const habitName = document.getElementById("habitName").value;
             const description = document.getElementById("description").value;
             const penalty = document.getElementById("penalty").value;
@@ -547,6 +551,10 @@
 
         // --- 功能 G: 載入我的契約列表 ---
         async function loadMyContracts() {
+            if (!userProfile) {
+                alert("⏳ 正在讀取 LINE 使用者資料，請稍等 1 秒後再試！");
+                return; // 直接結束，不讓程式往下跑
+            }
             const listDiv = document.getElementById("historyList");
             listDiv.innerHTML = "⏳ 正在搜尋...";
 
@@ -630,6 +638,10 @@
 
         // --- 功能 H: 列表快速打卡 ---
         async function quickCheckIn(contractId, contractName, btnElement) {
+            if (!userProfile) {
+                alert("⏳ 正在讀取 LINE 使用者資料，請稍等 1 秒後再試！");
+                return; // 直接結束，不讓程式往下跑
+            }
             const originalText = btnElement.textContent;
             btnElement.disabled = true;
             btnElement.textContent = "⏳...";

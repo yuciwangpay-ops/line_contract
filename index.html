@@ -304,10 +304,20 @@
             }
         }
 
-        // --- 功能 B: 顯示詳情與成員 (房間模式) ---
+
+        // --- 功能 B: 多人版加入介面 (判斷身分與狀態) ---
         async function showJoinMode() {
+            // 1. 切換畫面
             document.getElementById("createSection").classList.add("hidden");
+            const shareSec = document.getElementById("shareSection");
+            if (shareSec) shareSec.classList.add("hidden");
             document.getElementById("joinSection").classList.remove("hidden");
+
+            // 重置按鈕狀態
+            document.getElementById("btnJoin").classList.add("hidden");
+            document.getElementById("btnStart").classList.add("hidden");
+            document.getElementById("statusMessage").textContent = "";
+            document.getElementById("memberListDisplay").innerHTML = ""; // 清空名單
 
             try {
                 const res = await fetch(GAS_URL, {
@@ -370,8 +380,8 @@
                     const isCreator = (String(data.creatorId) === String(userProfile.userId));
                     const isRunning = (data.status === "RUNNING");
 
-                    // [新增] 檢查過期 (使用瀏覽器時間)
-                    const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+                    // 檢查過期
+                    const todayStr = new Date().toLocaleDateString('en-CA');
                     const isExpired = (data.endDate && todayStr > data.endDate);
 
                     if (isRunning) {
@@ -383,7 +393,6 @@
                             document.getElementById("statusMessage").innerHTML += `<br><span style="font-size:14px; color:#666">📅 期限：${data.startDate} ~ ${data.endDate}</span>`;
                         }
 
-                        // 打卡按鈕控制
                         const btnCheckIn = document.getElementById("btnCheckIn");
                         btnCheckIn.classList.remove("hidden");
 
@@ -393,18 +402,22 @@
                             btnCheckIn.textContent = "🚫 契約已結束";
                             btnCheckIn.style.backgroundColor = "#6c757d";
                         } else if (isCheckedInToday) {
-                            // ✅ 已打卡鎖定
-                            btnCheckIn.disabled = true;
-                            btnCheckIn.textContent = "✅ 今日已打卡";
-                            btnCheckIn.style.backgroundColor = "#6c757d";
+                            // 👇【修改重點】今天已打卡 -> 開啟傳送門
+                            btnCheckIn.disabled = false;
+                            btnCheckIn.textContent = "🎮 獲得票券！前往遊戲";
+                            btnCheckIn.style.backgroundColor = "#9c27b0"; // 紫色
+                            btnCheckIn.onclick = function () {
+                                goToGamePage(); // 呼叫跳轉
+                            };
                         } else {
                             // 🔥 可打卡
                             btnCheckIn.disabled = false;
                             btnCheckIn.textContent = "✅ 任務完成，我要打卡";
                             btnCheckIn.style.backgroundColor = "#28a745";
+                            // 記得把 onclick 設回打卡功能
+                            btnCheckIn.onclick = doCheckIn;
                         }
 
-                        // 進行中隊長也能刪除
                         if (isCreator) {
                             document.getElementById("btnDelete").classList.remove("hidden");
                         }
@@ -562,14 +575,17 @@
             }
         }
 
-        // --- 功能 G: 載入我的契約列表 ---
+
+        // --- 功能 G (豪華版): 列表 + 分享 + 詳情 + 快速打卡 + [進度條] ---
         async function loadMyContracts() {
+            // 1. 防呆檢查
             if (!userProfile) {
                 alert("⏳ 正在讀取 LINE 使用者資料，請稍等 1 秒後再試！");
-                return; // 直接結束，不讓程式往下跑
+                return;
             }
+
             const listDiv = document.getElementById("historyList");
-            listDiv.innerHTML = "⏳ 正在搜尋...";
+            listDiv.innerHTML = "⏳ 正在搜尋你的契約...";
 
             try {
                 const res = await fetch(GAS_URL, {
@@ -583,33 +599,42 @@
                 const json = await res.json();
 
                 if (json.result === "success") {
-                    listDiv.innerHTML = "";
+                    listDiv.innerHTML = ""; // 清空文字
+
                     if (json.contracts.length === 0) {
                         listDiv.innerHTML = "<p style='text-align:center; color:#999;'>你還沒參加任何契約喔！</p>";
                         return;
                     }
 
                     json.contracts.forEach(c => {
-                        const todayStr = new Date().toLocaleDateString('en-CA');
-                        const isExpired = (c.endDate && todayStr > c.endDate);
                         let statusIcon = "🔥";
                         let actionBtnHtml = "";
                         let safeName = c.name.replace(/'/g, "\\'");
 
+                        // 取得今天日期
+                        const todayStr = new Date().toLocaleDateString('en-CA');
+                        // 判斷是否過期
+                        const isExpired = (c.endDate && todayStr > c.endDate);
+
                         if (c.status === "PENDING") {
                             statusIcon = "⏳";
                             actionBtnHtml = `<button onclick="window.location.href='?contractId=${c.id}'" style="background-color:#0d6efd; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">等待中 ▶</button>`;
+
                         } else if (isExpired) {
                             statusIcon = "🏁";
                             actionBtnHtml = `<button disabled style="background-color:#6c757d; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:not-allowed;">🚫 已截止</button>`;
+
                         } else if (c.isDone) {
+                            // 👇【修改重點】原本是灰色 disabled，改成紫色並綁定跳轉
                             statusIcon = "✅";
-                            actionBtnHtml = `<button disabled style="background-color:#6c757d; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:not-allowed;">✅ 已完成</button>`;
+                            actionBtnHtml = `<button onclick="goToGamePage('${c.id}')" style="background-color:#9c27b0; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">🎮 去玩遊戲</button>`;
+
                         } else {
+                            // 進行中且未打卡 -> 顯示綠色打卡按鈕
                             actionBtnHtml = `<button onclick="quickCheckIn('${c.id}', '${safeName}', this)" style="background-color:#198754; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">✅ 直接打卡</button>`;
                         }
 
-                        // 進度條計算
+                        // 計算進度條
                         let percentage = 0;
                         let progressText = "等待啟動";
                         let progressColor = "#e9ecef";
@@ -622,25 +647,27 @@
                             progressColor = (percentage === 100) ? "#ffc107" : "#198754";
                         }
 
+                        // 組合 HTML
                         listDiv.innerHTML += `
-                            <div style="border:1px solid #ddd; padding:12px; margin-bottom:12px; border-radius:10px; background:white; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-                                    <div><strong style="font-size:16px;">${statusIcon} ${c.name}</strong></div>
-                                    <div style="display:flex; gap:5px;">
-                                        <button onclick="copyContractLink('${c.id}', '${safeName}')" style="background-color:#ffc107; color:#333; border:none; padding:5px 8px; border-radius:5px; cursor:pointer;">🔗</button>
-                                        <button onclick="window.location.href='?contractId=${c.id}'" style="background-color:#17a2b8; color:white; border:none; padding:5px 8px; border-radius:5px; cursor:pointer;">📄</button>
-                                        ${actionBtnHtml}
-                                    </div>
-                                </div>
-                                <div style="font-size:12px; color:#666; margin-bottom:4px; display:flex; justify-content:space-between;">
-                                    <span>${progressText}</span><span>${percentage}%</span>
-                                </div>
-                                <div style="width: 100%; background-color: #e9ecef; border-radius: 4px; height: 8px; overflow: hidden;">
-                                    <div style="width: ${percentage}%; background-color: ${progressColor}; height: 100%; transition: width 0.5s ease;"></div>
-                                </div>
+                    <div style="border:1px solid #ddd; padding:12px; margin-bottom:12px; border-radius:10px; background:white; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                            <div><strong style="font-size:16px;">${statusIcon} ${c.name}</strong></div>
+                            <div style="display:flex; gap:5px;">
+                                <button onclick="copyContractLink('${c.id}', '${safeName}')" style="background-color:#ffc107; color:#333; border:none; padding:5px 8px; border-radius:5px; cursor:pointer;">🔗</button>
+                                <button onclick="window.location.href='?contractId=${c.id}'" style="background-color:#17a2b8; color:white; border:none; padding:5px 8px; border-radius:5px; cursor:pointer;">📄</button>
+                                ${actionBtnHtml}
                             </div>
-                        `;
+                        </div>
+                        <div style="font-size:12px; color:#666; margin-bottom:4px; display:flex; justify-content:space-between;">
+                            <span>${progressText}</span><span>${percentage}%</span>
+                        </div>
+                        <div style="width: 100%; background-color: #e9ecef; border-radius: 4px; height: 8px; overflow: hidden;">
+                            <div style="width: ${percentage}%; background-color: ${progressColor}; height: 100%; transition: width 0.5s ease;"></div>
+                        </div>
+                    </div>
+                `;
                     });
+
                 } else {
                     listDiv.innerHTML = "讀取失敗: " + json.message;
                 }

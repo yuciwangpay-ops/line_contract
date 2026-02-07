@@ -233,33 +233,24 @@
 
         }
 
-        // [修改] 讓這個函式可以接收參數
+        // [修改] 這是最乾淨的跳轉方式
         function goToGamePage(targetContractId) {
-            // 1. 決定要使用哪一個契約 ID
             const id = targetContractId || currentContractId;
+            if (!id) { alert("錯誤：找不到契約 ID"); return; }
 
-            // 2. 檢查 ID 是否存在
-            if (!id) {
-                alert("錯誤：找不到契約 ID，無法跳轉！");
-                return;
-            }
+            // 這裡是你原本的 Game LIFF 網址
+            // 例如：https://liff.line.me/2008941439-M9ODe8F0
+            // ⚠️ 關鍵：請不要用 liff.line.me 的短網址，改用「真實的 HTML 網址」
 
-            // 3. 檢查設定
-            if (typeof GAME_LIFF_URL === 'undefined' || !GAME_LIFF_URL) {
-                alert("程式設定錯誤：找不到 GAME_LIFF_URL");
-                return;
-            }
+            // 請找出你部署在 GitHub Pages (或 GAS) 的那個「真實網址」
+            // 舉例： https://yourname.github.io/game_project/index.html
 
-            // 4. 組合網址
-            const targetUrl = `${GAME_LIFF_URL}?contractId=${id}`;
+            const REAL_GAME_URL = "https://yuciwangpay-ops.github.io/Game_DailyMBTI/index.html"; // 👈 請換成這個格式！
 
-            // 👇【修改這裡】把 window.location.href 換成 liff.openWindow
-            // window.location.href = targetUrl; // ❌ 舊的寫法 (容易出現轉場橫條)
+            const targetUrl = `${REAL_GAME_URL}?contractId=${id}`;
 
-            liff.openWindow({
-                url: targetUrl,
-                external: false // false 代表「在 LINE 內部瀏覽器打開」，不要跳去 Chrome/Safari
-            });
+            // 使用 replace (不會留下上一頁的紀錄，體驗最像 App 切換)
+            window.location.replace(targetUrl);
         }
         main();
 

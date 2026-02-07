@@ -171,8 +171,6 @@
             <div id="actionButtons">
                 <button id="btnJoin" class="btn btn-join hidden" onclick="joinContract()">➕ 沒問題，我要加入！</button>
 
-                <!-- <button id="btnStart" class="btn hidden" style="background-color: #ff9800;" onclick="startContract()">🚀 -->
-                <!-- 啟動契約 (隊長限定)</button> -->
                 <button id="btnStart" class="btn hidden" style="background-color: #9c27b0;" onclick="goToGamePage()">
                     🎮 前往遊戲世界 (準備啟動)
                 </button>
@@ -235,13 +233,18 @@
 
         }
 
-        function goToGamePage() {
-            if (!currentContractId) {
+        // [修改] 讓這個函式可以接收參數
+        function goToGamePage(targetContractId) {
+            // 優先使用傳進來的 ID，如果沒有傳，就用全域變數 currentContractId (房間內的)
+            const id = targetContractId || currentContractId;
+
+            if (!id) {
                 alert("錯誤：找不到契約 ID，無法跳轉");
                 return;
             }
-            // 組合目標網址 (把 contractId 帶過去)
-            const targetUrl = `${GAME_LIFF_URL}?contractId=${currentContractId}`;
+            // 組合目標網址
+            const targetUrl = `${GAME_LIFF_URL}?contractId=${id}`;
+
             // 執行跳轉
             window.location.href = targetUrl;
         }
@@ -489,7 +492,7 @@
             }
         }
 
-        // --- 功能 E: 房間內打卡 ---
+        // --- 功能 E: 房間內打卡 (修改版: 打卡成功後顯示跳轉按鈕) ---
         async function doCheckIn() {
             const btn = document.getElementById("btnCheckIn");
             btn.disabled = true; btn.textContent = "打卡中...";
@@ -507,8 +510,18 @@
                 });
                 const data = await res.json();
                 if (data.result === "success") {
-                    alert("🎉 打卡成功！");
-                    location.reload();
+                    alert("🎉 打卡成功！獲得一張遊戲券！");
+
+                    // ✅ 改成新的 (變紫色 + 開啟傳送門)
+                    btn.textContent = "🎮 獲得票券！前往遊戲";
+                    btn.style.backgroundColor = "#9c27b0"; // 紫色
+                    btn.disabled = false; // 【關鍵】要重新啟用按鈕，不然按了沒反應
+
+                    // 【關鍵】重新綁定點擊事件，讓它變成跳轉功能
+                    btn.onclick = function () {
+                        goToGamePage(); // 呼叫跳轉函式
+                    };
+
                 } else {
                     alert("失敗: " + data.message);
                     btn.disabled = false; btn.textContent = "✅ 今天任務完成！我要打卡";
@@ -636,7 +649,7 @@
             }
         }
 
-        // --- 功能 H: 列表快速打卡 ---
+        // --- 功能 H: 列表快速打卡 (修改版: 打卡成功後顯示跳轉按鈕) ---
         async function quickCheckIn(contractId, contractName, btnElement) {
             if (!userProfile) {
                 alert("⏳ 正在讀取 LINE 使用者資料，請稍等 1 秒後再試！");
@@ -660,9 +673,18 @@
                 });
                 const json = await res.json();
                 if (json.result === "success") {
-                    btnElement.textContent = "✅";
-                    btnElement.style.backgroundColor = "#6c757d";
-                    alert(`「${contractName}」打卡成功！🎉`);
+                    alert(`恭喜！「${contractName}」打卡成功！獲得一張遊戲券！🎉`);
+
+                    // ✅ 改成新的
+                    btnElement.textContent = "🎮 去玩遊戲";
+                    btnElement.style.backgroundColor = "#9c27b0"; // 紫色
+                    btnElement.disabled = false; // 【關鍵】重新啟用
+
+                    // 【關鍵】綁定跳轉，並把這個契約的 ID 傳進去
+                    btnElement.onclick = function () {
+                        goToGamePage(contractId);
+                    };
+
                 } else {
                     alert("失敗：" + json.message);
                     if (json.message.includes("已經打過")) {

@@ -235,20 +235,32 @@
 
         // [修改] 讓這個函式可以接收參數
         function goToGamePage(targetContractId) {
-            // 優先使用傳進來的 ID，如果沒有傳，就用全域變數 currentContractId (房間內的)
+            // 1. 決定要使用哪一個契約 ID
             const id = targetContractId || currentContractId;
 
+            // 2. 檢查 ID 是否存在
             if (!id) {
-                alert("錯誤：找不到契約 ID，無法跳轉");
+                alert("錯誤：找不到契約 ID，無法跳轉！");
                 return;
             }
-            // 組合目標網址
+
+            // 3. 檢查設定
+            if (typeof GAME_LIFF_URL === 'undefined' || !GAME_LIFF_URL) {
+                alert("程式設定錯誤：找不到 GAME_LIFF_URL");
+                return;
+            }
+
+            // 4. 組合網址
             const targetUrl = `${GAME_LIFF_URL}?contractId=${id}`;
 
-            // 執行跳轉
-            window.location.href = targetUrl;
-        }
+            // 👇【修改這裡】把 window.location.href 換成 liff.openWindow
+            // window.location.href = targetUrl; // ❌ 舊的寫法 (容易出現轉場橫條)
 
+            liff.openWindow({
+                url: targetUrl,
+                external: false // false 代表「在 LINE 內部瀏覽器打開」，不要跳去 Chrome/Safari
+            });
+        }
         main();
 
         // --- 功能 A: 建立契約 ---

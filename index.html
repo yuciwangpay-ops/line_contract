@@ -233,31 +233,19 @@
 
         }
 
-        // [修改] 終極版：使用 LIFF 網址 + 標準跳轉
         function goToGamePage(targetContractId) {
             const id = targetContractId || currentContractId;
+            if (!id) { alert("錯誤：無 ID"); return; }
 
-            if (!id) {
-                alert("錯誤：找不到契約 ID，無法跳轉！");
-                return;
-            }
-
-            // 防呆：確保是用 LIFF 網址
-            if (!GAME_LIFF_URL || !GAME_LIFF_URL.includes("liff.line.me")) {
-                alert("設定錯誤：GAME_LIFF_URL 必須是 https://liff.line.me/... 開頭的網址");
-                return;
-            }
-
-            // 組合網址
+            // 使用 LIFF 網址
             const targetUrl = `${GAME_LIFF_URL}?contractId=${id}`;
 
-            // 使用標準跳轉
-            // 這會讓 LINE 伺服器先介入處理登入 (產生 ?code=...)，然後才顯示遊戲畫面
-            // 這樣就不會由遊戲網頁自己跳轉，體驗會最接近「直接點連結」
-            window.location.href = targetUrl;
+            // 使用官方開窗指令
+            liff.openWindow({
+                url: targetUrl,
+                external: false // 在 LINE 裡面打開
+            });
         }
-
-
         main();
 
         // --- 功能 A: 建立契約 ---

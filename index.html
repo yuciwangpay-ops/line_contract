@@ -260,6 +260,9 @@
             const GAME_LIFF_URL = "https://yuciwangpay-ops.github.io/Game_DailyMBTI/";
             // 2. 組合網址
             //const targetUrl = `${GAME_LIFF_URL}?contractId=${id}`;
+            // 👉 【必須補上這行】先產生當下的時間數字，用來當作隨機參數
+            const timestamp = new Date().getTime(); 
+            
             const targetUrl = `${GAME_LIFF_URL}?contractId=${id}&time=${timestamp}`;
             // 3. 執行開窗
             // 使用 openWindow 開啟普通網頁，體驗最順暢

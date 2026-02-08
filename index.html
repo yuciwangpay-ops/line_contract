@@ -259,7 +259,8 @@
             // 這樣 LINE 就不會把它當作 LIFF App 啟動，自然就不會有那個系統轉圈圈
             const GAME_LIFF_URL = "https://yuciwangpay-ops.github.io/Game_DailyMBTI/";
             // 2. 組合網址
-            const targetUrl = `${GAME_LIFF_URL}?contractId=${id}`;
+            //const targetUrl = `${GAME_LIFF_URL}?contractId=${id}`;
+            const targetUrl = `${GAME_LIFF_URL}?contractId=${id}&time=${timestamp}`;
             // 3. 執行開窗
             // 使用 openWindow 開啟普通網頁，體驗最順暢
             liff.openWindow({

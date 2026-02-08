@@ -192,16 +192,18 @@
 
     </div>
 
+
+
     <script>
-        // ⚠️ 設定區：請確認這是你的 LIFF ID 和 GAS URL
+        // === 1. 基本設定與全域變數 ===
         const MY_LIFF_ID = "2008852230-BdH1Y5Fl";
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwAwqRtPZ6ETPkjdnFGTpSIG2lfk_C1TOZaVKp3ykk4AKwUNiJFOXii_0jTUKWYzOJGZQ/exec";
-        //const GAME_LIFF_URL = "https://liff.line.me/2008941439-M9ODe8F0";
-        const GAME_LIFF_URL = "https://yuciwangpay-ops.github.io/Game_DailyMBTI/";
-        // 全域變數
+        const GAME_LIFF_URL = "https://liff.line.me/2008941439-M9ODe8F0";
+
         let userProfile = null;
         let currentContractId = null;
 
+        // === 2. 初始化主程式 (含 n8n 訊息發送保留) ===
         async function main() {
             await liff.init({ liffId: MY_LIFF_ID });
 
@@ -210,99 +212,46 @@
                 return;
             }
             userProfile = await liff.getProfile();
-            // 檢查網址參數
+
             const urlParams = new URLSearchParams(window.location.search);
             currentContractId = urlParams.get("contractId");
 
             if (currentContractId) {
                 showJoinMode(); // 進入詳情/加入模式
             } else {
-                document.getElementById("createSection").classList.remove("hidden"); // 顯示建立/列表模式
-                // [新增] 檢查是否已經傳送過指令 (避免重新整理網頁時一直傳)
-                // 這裡可以用 sessionStorage 或 URL 參數來判斷
+                document.getElementById("createSection").classList.remove("hidden");
+                // [保留功能] 發送 #習慣契約 指令給 n8n
                 if (!sessionStorage.getItem("msgSent")) {
                     try {
-                        await liff.sendMessages([
-                            {
-                                type: 'text',
-                                text: '#習慣契約' // 👈 這就是 n8n 會收到的文字
-                            }
-                        ]);
-                        console.log("訊息已發送");
-                        sessionStorage.setItem("msgSent", "true"); // 標記已發送
-                    } catch (err) {
-                        console.error("發送失敗，可能是沒有權限", err);
-                        // 這裡可能需要提示使用者去開啟權限
-                    }
+                        await liff.sendMessages([{ type: 'text', text: '#習慣契約' }]);
+                        sessionStorage.setItem("msgSent", "true");
+                    } catch (err) { console.error("發送失敗", err); }
                 }
             }
-
         }
-
-        // [修改] 最終絕對有效版：使用 GitHub 直連 + 原生網頁跳轉
-        function goToGamePage(targetContractId) {
-            // 1. 取得 ID
-            const id = targetContractId || currentContractId;
-            if (!id) { alert("錯誤：無 ID"); return; }
-
-            // 2. 確認網址 (您原本設定的 GitHub 網址是對的，不用改)
-            //const GAME_LIFF_URL = "https://yuciwangpay-ops.github.io/Game_DailyMBTI/"; 
-            // 3. 組合網址
-            //const targetUrl = `${GAME_LIFF_URL}?contractId=${id}`;
-            // 4. 【關鍵修改】請把原本的 liff.openWindow 刪掉，換成下面這行！
-            // 這會直接切換網頁，LINE 根本來不及跳出轉圈圈
-            //window.location.href = targetUrl;
-
-            //const GAME_LIFF_URL = "https://line.me/R/app/2008941439-M9ODe8F0";
-            const GAME_LIFF_URL = "https://liff.line.me/2008941439-M9ODe8F0";
-            const targetUrl = `${GAME_LIFF_URL}?contractId=${id}`;
-            //window.location.href = targetUrl;
-            window.location.replace(targetUrl);
-            //liff.openWindow({
-            //    url: targetUrl,
-            //    external: false
-            //});
-
-            // 1. 【關鍵】改用 GitHub 直連網址 (請確認您的網址是正確的)
-            // 這樣 LINE 就不會把它當作 LIFF App 啟動，自然就不會有那個系統轉圈圈
-            //const GAME_LIFF_URL = "https://yuciwangpay-ops.github.io/Game_DailyMBTI/";
-            // 2. 組合網址
-            //const targetUrl = `${GAME_LIFF_URL}?contractId=${id}`;
-            // 👉 【必須補上這行】先產生當下的時間數字，用來當作隨機參數
-            //const timestamp = new Date().getTime(); 
-            //const targetUrl = `${GAME_LIFF_URL}?contractId=${id}&time=${timestamp}`;
-            // 3. 執行開窗
-            // 使用 openWindow 開啟普通網頁，體驗最順暢
-            //liff.openWindow({
-            //    url: targetUrl,
-            //    external: false // 在 LINE 內部瀏覽器開啟
-            //});
-        }
-
-
         main();
 
-        // --- 功能 A: 建立契約 ---
+        // === 3. 跳轉遊戲功能 (GitHub 直連優化版) ===
+        function goToGamePage(targetContractId) {
+            const id = targetContractId || currentContractId;
+            if (!id) { alert("錯誤：無 ID"); return; }
+            const targetUrl = `${GAME_LIFF_URL}?contractId=${id}`;
+            window.location.replace(targetUrl); // 使用 replace 避免轉圈圈
+        }
+
+        // === 4. 建立契約 ===
         async function submitContract() {
-            if (!userProfile) {
-                alert("⏳ 正在讀取 LINE 使用者資料，請稍等 1 秒後再試！");
-                return; // 直接結束，不讓程式往下跑
-            }
+            if (!userProfile) { alert("⏳ 資料載入中..."); return; }
             const habitName = document.getElementById("habitName").value;
             const description = document.getElementById("description").value;
             const penalty = document.getElementById("penalty").value;
             const duration = document.getElementById("duration").value;
-            const gameType = document.getElementById("gameType").value; // [新增] 遊戲類型
+            const gameType = document.getElementById("gameType").value;
 
-            if (!habitName || !duration) {
-                alert("請至少填寫習慣名稱和天數！");
-                return;
-            }
+            if (!habitName || !duration) { alert("請填寫習慣名稱和天數！"); return; }
 
             const btn = document.querySelector(".btn-create");
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.textContent = "建立中...";
+            btn.disabled = true; btn.textContent = "建立中...";
 
             try {
                 const res = await fetch(GAS_URL, {
@@ -319,44 +268,26 @@
                         gameType: gameType
                     })
                 });
-
                 const json = await res.json();
                 if (json.result === "success") {
-                    showSharePage(json.contractId); // 顯示分享頁面
-                } else {
-                    alert("錯誤：" + json.message);
-                    btn.disabled = false;
-                    btn.textContent = originalText;
-                }
-            } catch (e) {
-                alert("錯誤：" + e);
-                btn.disabled = false;
-                btn.textContent = originalText;
-            }
+                    showSharePage(json.contractId);
+                } else { alert("錯誤：" + json.message); btn.disabled = false; }
+            } catch (e) { alert("錯誤：" + e); btn.disabled = false; }
         }
 
-
-        // --- 功能 B: 多人版詳情介面 (包含狀態分流判斷) ---
+        // === 5. 多人詳情介面 (完整保留角色圖示與狀態分流) ===
         async function showJoinMode() {
-            // 1. 切換顯示區域
             document.getElementById("createSection").classList.add("hidden");
             const shareSec = document.getElementById("shareSection");
             if (shareSec) shareSec.classList.add("hidden");
             document.getElementById("joinSection").classList.remove("hidden");
 
-            // 2. 重置按鈕狀態 (全部隱藏)
             const btnJoin = document.getElementById("btnJoin");
             const btnStart = document.getElementById("btnStart");
             const btnCheckIn = document.getElementById("btnCheckIn");
             const btnDelete = document.getElementById("btnDelete");
 
-            [btnJoin, btnStart, btnCheckIn, btnDelete].forEach(btn => {
-                if (btn) {
-                    btn.classList.add("hidden");
-                    btn.disabled = false; // 重置禁用狀態
-                }
-            });
-
+            [btnJoin, btnStart, btnCheckIn, btnDelete].forEach(b => { if (b) b.classList.add("hidden"); b.disabled = false; });
             document.getElementById("statusMessage").textContent = "";
             document.getElementById("memberListDisplay").innerHTML = "";
 
@@ -364,39 +295,38 @@
                 const res = await fetch(GAS_URL, {
                     method: "POST",
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action: "get_contract_details",
-                        contractId: currentContractId,
-                        userId: userProfile.userId
-                    })
+                    body: JSON.stringify({ action: "get_contract_details", contractId: currentContractId, userId: userProfile.userId })
                 });
                 const json = await res.json();
 
                 if (json.result === "success") {
-                    const data = json.data;[cite: 55]
-                    const members = json.members || [];[cite: 63]
-                    const isCheckedInToday = json.isCheckedInToday;[cite: 66]
+                    [cite_start]const data = json.data;[cite: 55]
+                    const members = json.members || [cite_start][];[cite: 63]
+                    [cite_start]const isCheckedInToday = json.isCheckedInToday;[cite: 66]
 
-                    // 填充契約基本資料 (對應後端 key)
-                    document.getElementById("showHabitName").textContent = data.habitName;[cite: 55]
-                    document.getElementById("showDesc").textContent = data.description;[cite: 55]
-                    document.getElementById("showPenalty").textContent = data.penalty;[cite: 55]
-                    document.getElementById("showDuration").textContent = data.duration;[cite: 55]
+                    [cite_start]document.getElementById("showHabitName").textContent = data.habitName;[cite: 55]
+                    [cite_start]document.getElementById("showDesc").textContent = data.description;[cite: 55]
+                    [cite_start]document.getElementById("showPenalty").textContent = data.penalty;[cite: 55]
+                    [cite_start]document.getElementById("showDuration").textContent = data.duration;[cite: 55]
 
-                    // 顯示成員列表
                     const listContainer = document.getElementById("memberListDisplay");
                     let amIInList = false;
 
                     members.forEach(member => {
                         const li = document.createElement("li");
-                        let displayIcon = (member.role === "Admin") ? "👑 " : "👤 ";[cite: 63]
-
-                        if (data.status === "RUNNING") {
+                        [cite_start]let displayIcon = (member.role === "Admin") ? "👑 " : "👤 ";[cite: 63]
+                        let textColor = "#333";
+                        [cite_start]if (data.status === "RUNNING") {
                             [cite: 55]
-                            displayIcon = member.isDoneToday ? "💯 " : "🐢 ";[cite: 63]
+                        [cite_start]if (member.isDoneToday) {
+                            [cite: 63]
+                            displayIcon = "💯 "; textColor = "#198754";
+                        } else {
+                                displayIcon = "🐢 "; textColor = "#666";
+                            }
                         }
-
-                        li.textContent = displayIcon + member.name;[cite: 63]
+                        [cite_start]li.textContent = displayIcon + member.name;[cite: 63]
+                        li.style.color = textColor;
                         listContainer.appendChild(li);
                         if (member.name === userProfile.displayName) amIInList = true;
                     });
@@ -404,424 +334,199 @@
                     document.getElementById("loadingText").classList.add("hidden");
                     document.getElementById("contractDetails").classList.remove("hidden");
 
-                    // 身分與狀態判斷
-                    const isCreator = (String(data.creatorId) === String(userProfile.userId));[cite: 55]
-                    const isPending = (data.status === "PENDING");[cite: 55]
-                    const isGameInit = (data.status === "GAME_INIT"); // 新增狀態
-                    const isRunning = (data.status === "RUNNING");[cite: 55]
+                    [cite_start]const isCreator = (String(data.creatorId) === String(userProfile.userId));[cite: 55]
+                    [cite_start]const isPending = (data.status === "PENDING");[cite: 55]
+                    const isGameInit = (data.status === "GAME_INIT");
+                    [cite_start]const isRunning = (data.status === "RUNNING");[cite: 55]
 
-                    // --- 按鈕邏輯分流 ---
-
-                    // A. 如果尚未加入
                     if (!amIInList && isPending) {
                         btnJoin.classList.remove("hidden");
-                    }
-
-                    // B. 招募中 (PENDING)
-                    else if (isPending) {
+                    } else if (isPending) {
                         btnStart.classList.remove("hidden");
-                        if (isCreator) {
-                            btnStart.textContent = "🚀 啟動契約 (隊長限定)";
-                            btnStart.style.backgroundColor = "#7b1fa2"; // 紫色
-                            btnStart.onclick = doStartContract; // 執行 API 啟動
-                        } else {
-                            btnStart.textContent = "⌛ 等待隊長啟動...";
-                            btnStart.style.backgroundColor = "#6c757d";
-                            btnStart.disabled = true;
-                        }
-                    }
-
-                    // C. 初始化中 (GAME_INIT)
-                    else if (isGameInit) {
+                        btnStart.textContent = isCreator ? "🚀 啟動契約 (隊長限定)" : "⌛ 等待隊長啟動...";
+                        btnStart.style.backgroundColor = isCreator ? "#7b1fa2" : "#6c757d";
+                        btnStart.disabled = !isCreator;
+                        btnStart.onclick = doStartContract;
+                    } else if (isGameInit) {
                         btnStart.classList.remove("hidden");
-                        if (isCreator) {
-                            btnStart.textContent = "⚙️ 前往遊戲完成設定";
-                            btnStart.style.backgroundColor = "#fd7e14"; // 橘色提醒
-                            btnStart.onclick = () => goToGamePage(); // 跳轉至遊戲 Link
-                        } else {
-                            btnStart.textContent = "⌛ 等待隊長初始化遊戲...";
-                            btnStart.style.backgroundColor = "#6c757d";
-                            btnStart.disabled = true;
-                        }
-                    }
-
-                    // D. 進行中 (RUNNING)
-                    else if (isRunning) {
+                        btnStart.textContent = isCreator ? "⚙️ 前往遊戲完成設定" : "⌛ 等待隊長初始化...";
+                        btnStart.style.backgroundColor = isCreator ? "#fd7e14" : "#6c757d";
+                        btnStart.disabled = !isCreator;
+                        btnStart.onclick = () => goToGamePage();
+                    } else if (isRunning) {
                         btnCheckIn.classList.remove("hidden");
                         if (isCheckedInToday) {
                             btnCheckIn.textContent = "🎮 獲得票券！前往遊戲";
-                            btnCheckIn.style.backgroundColor = "#9c27b0"; // 紫色
+                            btnCheckIn.style.backgroundColor = "#9c27b0";
                             btnCheckIn.onclick = () => goToGamePage();
                         } else {
                             btnCheckIn.textContent = "✅ 今天任務完成！我要打卡";
-                            btnCheckIn.style.backgroundColor = "#28a745"; // 綠色
+                            btnCheckIn.style.backgroundColor = "#28a745";
                             btnCheckIn.onclick = doCheckIn;
                         }
-
                         if (isCreator) btnDelete.classList.remove("hidden");
-
-                        // 顯示日期
                         if (data.startDate && data.endDate) {
-                            document.getElementById("statusMessage").innerHTML =
-                                `<span style="font-size:14px; color:#666">📅 期限：${data.startDate} ~ ${data.endDate}</span>`;
+                            document.getElementById("statusMessage").innerHTML = `📅 期限：${data.startDate} ~ ${data.endDate}`;
                         }
                     }
-
-                } else {
-                    document.getElementById("loadingText").textContent = "❌ 讀取失敗: " + json.message;
                 }
-            } catch (e) {
-                document.getElementById("loadingText").textContent = "錯誤: " + e;
-            }
+            } catch (e) { document.getElementById("loadingText").textContent = "錯誤: " + e; }
         }
 
-        // ⚠️ 記得補上這個對應的 doStartContract
-        async function doStartContract() {
-            if (!confirm("確定要啟動嗎？啟動後就無法再加入新人囉！")) return;
-            const btn = document.getElementById("btnStart");
-            btn.disabled = true; btn.textContent = "啟動中...";
-
-            try {
-                const res = await fetch(GAS_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action: "start_contract",
-                        contractId: currentContractId,
-                        userId: userProfile.userId
-                    })
-                });
-                const data = await res.json();
-                if (data.result === "success") {
-                    alert("🚀 契約已啟動！" + (data.status === "GAME_INIT" ? "請接著完成遊戲設定。" : ""));
-                    location.reload();
-                } else {
-                    alert("失敗: " + data.message);
-                    btn.disabled = false; btn.textContent = "🚀 啟動契約 (隊長限定)";
-                }
-            } catch (e) {
-                alert("錯誤: " + e);
-                btn.disabled = false;
-            }
-        }
-
-        // --- 功能 C: 加入契約 ---
+        // === 6. 加入與刪除功能 ===
         async function joinContract() {
             if (!currentContractId) return;
             const btn = document.getElementById("btnJoin");
             btn.disabled = true; btn.textContent = "加入中...";
-
             try {
                 const res = await fetch(GAS_URL, {
                     method: "POST",
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action: "join_contract",
-                        contractId: currentContractId,
-                        userId: userProfile.userId,
-                        userName: userProfile.displayName
-                    })
+                    body: JSON.stringify({ action: "join_contract", contractId: currentContractId, userId: userProfile.userId, userName: userProfile.displayName })
                 });
                 const data = await res.json();
-                if (data.result === "success") {
-                    alert("🎉 加入成功！");
-                    location.reload();
-                } else {
-                    alert("失敗: " + data.message);
-                    btn.disabled = false; btn.textContent = "➕ 沒問題，我要加入！";
-                }
-            } catch (e) {
-                alert("錯誤: " + e);
-                btn.disabled = false; btn.textContent = "➕ 沒問題，我要加入！";
-            }
+                if (data.result === "success") { alert("🎉 加入成功！"); location.reload(); }
+                else { alert(data.message); btn.disabled = false; btn.textContent = "➕ 加入契約"; }
+            } catch (e) { alert("錯誤: " + e); btn.disabled = false; }
         }
 
-        // --- 功能 D: 啟動契約 ---
-        async function startContract() {
-            if (!confirm("確定要啟動嗎？啟動後就無法再加入新人囉！")) return;
-            const btn = document.getElementById("btnStart");
-            btn.disabled = true; btn.textContent = "啟動中...";
-
+        async function doDeleteContract() {
+            if (!confirm("⚠️ 警告：刪除後無法復原！")) return;
+            const btn = document.getElementById("btnDelete");
+            btn.disabled = true;
             try {
                 const res = await fetch(GAS_URL, {
                     method: "POST",
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action: "start_contract",
-                        contractId: currentContractId,
-                        userId: userProfile.userId
-                    })
+                    body: JSON.stringify({ action: "delete_contract", contractId: currentContractId, userId: userProfile.userId })
                 });
                 const data = await res.json();
-                if (data.result === "success") {
-                    alert("🚀 契約已啟動！");
-                    location.reload();
-                } else {
-                    alert("失敗: " + data.message);
-                    btn.disabled = false; btn.textContent = "🚀 啟動契約 (隊長限定)";
-                }
-            } catch (e) {
-                alert("錯誤: " + e);
-                btn.disabled = false; btn.textContent = "🚀 啟動契約 (隊長限定)";
-            }
+                if (data.result === "success") { alert("🗑️ 已刪除！"); window.location.href = window.location.pathname; }
+            } catch (e) { alert("錯誤: " + e); btn.disabled = false; }
         }
 
-        // --- 功能 E: 房間內打卡 (修改版: 打卡成功後顯示跳轉按鈕) ---
+        // === 7. 打卡功能 (含清單快速打卡與房間打卡) ===
         async function doCheckIn() {
             const btn = document.getElementById("btnCheckIn");
             btn.disabled = true; btn.textContent = "打卡中...";
-
             try {
                 const res = await fetch(GAS_URL, {
                     method: "POST",
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action: "log_time", // 注意：這裡是 log_time，後端要對應
-                        contractId: currentContractId,
-                        userId: userProfile.userId,
-                        userName: userProfile.displayName
-                    })
+                    body: JSON.stringify({ action: "log_time", contractId: currentContractId, userId: userProfile.userId, userName: userProfile.displayName })
                 });
                 const data = await res.json();
                 if (data.result === "success") {
-                    alert("🎉 打卡成功！獲得一張遊戲券！");
-
-                    // ✅ 改成新的 (變紫色 + 開啟傳送門)
+                    alert("🎉 打卡成功！");
                     btn.textContent = "🎮 獲得票券！前往遊戲";
-                    btn.style.backgroundColor = "#9c27b0"; // 紫色
-                    btn.disabled = false; // 【關鍵】要重新啟用按鈕，不然按了沒反應
-
-                    // 【關鍵】重新綁定點擊事件，讓它變成跳轉功能
-                    btn.onclick = function () {
-                        goToGamePage(); // 呼叫跳轉函式
-                    };
-
-                } else {
-                    alert("失敗: " + data.message);
-                    btn.disabled = false; btn.textContent = "✅ 今天任務完成！我要打卡";
-                }
-            } catch (e) {
-                alert("錯誤: " + e);
-                btn.disabled = false; btn.textContent = "✅ 今天任務完成！我要打卡";
-            }
+                    btn.style.backgroundColor = "#9c27b0";
+                    btn.disabled = false;
+                    btn.onclick = () => goToGamePage();
+                } else { alert(data.message); btn.disabled = false; btn.textContent = "✅ 打卡"; }
+            } catch (e) { alert("錯誤: " + e); btn.disabled = false; }
         }
 
-        // --- 功能 F: 刪除契約 ---
-        async function doDeleteContract() {
-            if (!confirm("⚠️ 警告：刪除後無法復原！\n\n確定要刪除嗎？")) return;
-            const btn = document.getElementById("btnDelete");
-            btn.disabled = true; btn.textContent = "刪除中...";
-
+        async function quickCheckIn(id, name, btn) {
+            const originalText = btn.textContent;
+            btn.disabled = true; btn.textContent = "⏳...";
             try {
                 const res = await fetch(GAS_URL, {
                     method: "POST",
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action: "delete_contract",
-                        contractId: currentContractId,
-                        userId: userProfile.userId
-                    })
-                });
-                const data = await res.json();
-                if (data.result === "success") {
-                    alert("🗑️ 已刪除！回到首頁。");
-                    window.location.href = window.location.pathname;
-                } else {
-                    alert("失敗: " + data.message);
-                    btn.disabled = false; btn.textContent = "🗑️ 刪除此契約 (隊長限定)";
-                }
-            } catch (e) {
-                alert("錯誤: " + e);
-                btn.disabled = false; btn.textContent = "🗑️ 刪除此契約 (隊長限定)";
-            }
-        }
-
-
-        // --- 功能 G (豪華版): 列表 + 分享 + 詳情 + 快速打卡 ---
-        async function loadMyContracts() {
-            if (!userProfile) {
-                alert("⏳ 正在讀取 LINE 使用者資料...");
-                return;
-            }
-
-            const listDiv = document.getElementById("historyList");
-            listDiv.innerHTML = "⏳ 正在搜尋你的契約...";
-
-            try {
-                const res = await fetch(GAS_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action: "get_my_contracts",
-                        userId: userProfile.userId
-                    })
+                    body: JSON.stringify({ action: "check_in", contractId: id, userId: userProfile.userId, userName: userProfile.displayName })
                 });
                 const json = await res.json();
+                if (json.result === "success") {
+                    alert(`恭喜！「${name}」打卡成功！🎉`);
+                    btn.textContent = "🎮 玩遊戲"; btn.style.backgroundColor = "#9c27b0"; btn.disabled = false;
+                    btn.onclick = () => goToGamePage(id);
+                } else { alert(json.message); btn.disabled = false; btn.textContent = originalText; }
+            } catch (e) { alert("錯誤: " + e); btn.disabled = false; }
+        }
 
+        // === 8. 列表載入 (含完整進度條計算) ===
+        async function loadMyContracts() {
+            if (!userProfile) return;
+            const listDiv = document.getElementById("historyList");
+            listDiv.innerHTML = "⏳ 載入中...";
+            try {
+                const res = await fetch(GAS_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify({ action: "get_my_contracts", userId: userProfile.userId })
+                });
+                const json = await res.json();
                 if (json.result === "success") {
                     listDiv.innerHTML = "";
-
-                    if (json.contracts.length === 0) {
-                        listDiv.innerHTML = "<p style='text-align:center; color:#999;'>你還沒參加任何契約喔！</p>";
-                        return;
-                    }
-
+                    if (json.contracts.length === 0) { listDiv.innerHTML = "<p>尚無契約</p>"; return; }
                     json.contracts.forEach(c => {
-                        let statusIcon = "🔥";
-                        let actionBtnHtml = "";
-
-                        // 🛠️ 【修正點 1】後端回傳的是 habitName，前端要對齊
-                        const displayName = c.habitName || "未命名契約";
+                        let statusIcon = "🔥"; let actionBtnHtml = "";
+                        const displayName = c.habitName || "未命名";
                         const safeName = displayName.replace(/'/g, "\\'");
-                        const contractId = c.id; // 確保使用 id
-
                         const todayStr = new Date().toLocaleDateString('en-CA');
                         const isExpired = (c.endDate && todayStr > c.endDate);
 
-                        if (c.status === "PENDING") {
-                            statusIcon = "⏳";
-                            actionBtnHtml = `<button onclick="window.location.href='?contractId=${contractId}'" style="background-color:#0d6efd; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">等待中 ▶</button>`;
-                        } else if (isExpired) {
-                            statusIcon = "🏁";
-                            actionBtnHtml = `<button disabled style="background-color:#6c757d; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:not-allowed;">🚫 已截止</button>`;
-                        } else if (c.isDone) {
-                            statusIcon = "✅";
-                            actionBtnHtml = `<button onclick="goToGamePage('${contractId}')" style="background-color:#9c27b0; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">🎮 去玩遊戲</button>`;
-                        } else {
-                            // 🛠️ 【修正點 2】確認呼叫 quickCheckIn 時傳入的是正確變數
-                            actionBtnHtml = `<button onclick="quickCheckIn('${contractId}', '${safeName}', this)" style="background-color:#198754; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">✅ 直接打卡</button>`;
+                        if (c.status === "PENDING") { statusIcon = "⏳"; actionBtnHtml = `<button onclick="window.location.href='?contractId=${c.id}'" style="background-color:#0d6efd; color:white; border:none; padding:5px 10px; border-radius:5px;">詳情 ▶</button>`; }
+                        else if (isExpired) { statusIcon = "🏁"; actionBtnHtml = `<button disabled style="background-color:#6c757d; color:white; border:none; padding:5px 10px; border-radius:5px;">已截止</button>`; }
+                        else if (c.isDone) { statusIcon = "✅"; actionBtnHtml = `<button onclick="goToGamePage('${c.id}')" style="background-color:#9c27b0; color:white; border:none; padding:5px 10px; border-radius:5px;">去玩遊戲</button>`; }
+                        else { actionBtnHtml = `<button onclick="quickCheckIn('${c.id}', '${safeName}', this)" style="background-color:#198754; color:white; border:none; padding:5px 10px; border-radius:5px;">打卡</button>`; }
+
+                        let percentage = 0, progressText = "等待啟動", progressColor = "#e9ecef";
+                        if (c.status === "RUNNING") {
+                            const total = c.totalMembers || 1; const done = c.todayCount || 0;
+                            percentage = Math.round((done / total) * 100); progressText = `今日進度: ${done} / ${total} 人`; progressColor = (percentage === 100) ? "#ffc107" : "#198754";
                         }
 
-                        // ... 進度條計算邏輯不變 ...
-
                         listDiv.innerHTML += `
-                    <div style="border:1px solid #ddd; padding:12px; margin-bottom:12px; border-radius:10px; background:white; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                    <div style="border:1px solid #ddd; padding:12px; margin-bottom:12px; border-radius:10px; background:white;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
-                            <div><strong style="font-size:16px;">${statusIcon} ${displayName}</strong></div>
+                            <div><strong>${statusIcon} ${displayName}</strong></div>
                             <div style="display:flex; gap:5px;">
-                                <button onclick="copyContractLink('${contractId}', '${safeName}')" style="background-color:#ffc107; color:#333; border:none; padding:5px 8px; border-radius:5px; cursor:pointer;">🔗</button>
-                                <button onclick="window.location.href='?contractId=${contractId}'" style="background-color:#17a2b8; color:white; border:none; padding:5px 8px; border-radius:5px; cursor:pointer;">📄</button>
+                                <button onclick="copyContractLink('${c.id}', '${safeName}')" style="background-color:#ffc107; border:none; padding:5px 8px; border-radius:5px;">🔗</button>
                                 ${actionBtnHtml}
                             </div>
                         </div>
-                        </div>`;
+                        <div style="font-size:12px; color:#666; margin-bottom:4px; display:flex; justify-content:space-between;"><span>${progressText}</span><span>${percentage}%</span></div>
+                        <div style="width: 100%; background-color: #e9ecef; border-radius: 4px; height: 8px; overflow: hidden;"><div style="width: ${percentage}%; background-color: ${progressColor}; height: 100%;"></div></div>
+                    </div>`;
                     });
-                } else {
-                    listDiv.innerHTML = "讀取失敗: " + json.message;
                 }
-            } catch (e) {
-                listDiv.innerHTML = "錯誤: " + e;
-            }
+            } catch (e) { listDiv.innerHTML = "錯誤: " + e; }
         }
 
-        // --- 功能 H: 列表快速打卡 (修改版: 打卡成功後顯示跳轉按鈕) ---
-        async function quickCheckIn(contractId, contractName, btnElement) {
-            if (!userProfile) {
-                alert("⏳ 正在讀取 LINE 使用者資料，請稍等 1 秒後再試！");
-                return; // 直接結束，不讓程式往下跑
-            }
-            const originalText = btnElement.textContent;
-            btnElement.disabled = true;
-            btnElement.textContent = "⏳...";
-            btnElement.style.backgroundColor = "#ffc107";
-
-            try {
-                const res = await fetch(GAS_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action: "check_in", // 這裡是用 check_in
-                        contractId: contractId,
-                        userId: userProfile.userId,
-                        userName: userProfile.displayName
-                    })
-                });
-                const json = await res.json();
-                if (json.result === "success") {
-                    alert(`恭喜！「${contractName}」打卡成功！獲得一張遊戲券！🎉`);
-
-                    // ✅ 改成新的
-                    btnElement.textContent = "🎮 去玩遊戲";
-                    btnElement.style.backgroundColor = "#9c27b0"; // 紫色
-                    btnElement.disabled = false; // 【關鍵】重新啟用
-
-                    // 【關鍵】綁定跳轉，並把這個契約的 ID 傳進去
-                    btnElement.onclick = function () {
-                        goToGamePage(contractId);
-                    };
-
-                } else {
-                    alert("失敗：" + json.message);
-                    if (json.message.includes("已經打過")) {
-                        btnElement.textContent = "✅";
-                        btnElement.style.backgroundColor = "#6c757d";
-                    } else {
-                        btnElement.disabled = false;
-                        btnElement.textContent = originalText;
-                        btnElement.style.backgroundColor = "#198754";
-                    }
-                }
-            } catch (e) {
-                alert("錯誤：" + e);
-                btnElement.disabled = false;
-                btnElement.textContent = originalText;
-                btnElement.style.backgroundColor = "#198754";
-            }
-        }
+        // === 9. 啟動契約 (方案二分流修正) ===
         async function doStartContract() {
-            if (!confirm("確定要啟動嗎？啟動後就無法再加入新人囉！")) return;
-            const btn = document.getElementById("btnStart");
-            btn.disabled = true; btn.textContent = "啟動中...";
-
+            if (!confirm("確定啟動嗎？")) return;
+            const btn = document.getElementById("btnStart"); btn.disabled = true;
             try {
                 const res = await fetch(GAS_URL, {
                     method: "POST",
                     headers: { "Content-Type": "text/plain;charset=utf-8" },
-                    body: JSON.stringify({
-                        action: "start_contract",
-                        contractId: currentContractId,
-                        userId: userProfile.userId
-                    })
+                    body: JSON.stringify({ action: "start_contract", contractId: currentContractId, userId: userProfile.userId })
                 });
                 const data = await res.json();
-                if (data.result === "success") {
-                    alert("🚀 契約已啟動！請接著完成遊戲設定。");
-                    location.reload(); // 重新整理後會因狀態變為 GAME_INIT 而顯示橘色按鈕
-                } else {
-                    alert("失敗: " + data.message);
-                    btn.disabled = false;
-                }
-            } catch (e) {
-                alert("錯誤: " + e);
-                btn.disabled = false;
-            }
+                if (data.result === "success") { alert("🚀 契約啟動！" + (data.status === "GAME_INIT" ? "請前往遊戲設定。" : "")); location.reload(); }
+            } catch (e) { alert("錯誤: " + e); btn.disabled = false; }
         }
-        // --- 輔助: 顯示分享頁 ---
+
+        // === 10. 輔助工具 (分享/複製連結) ===
         function showSharePage(contractId) {
             document.getElementById("createSection").classList.add("hidden");
             document.getElementById("shareSection").classList.remove("hidden");
-            const inviteUrl = `https://liff.line.me/${MY_LIFF_ID}?contractId=${contractId}`;
-            document.getElementById("shareLink").value = inviteUrl;
+            document.getElementById("shareLink").value = `https://liff.line.me/${MY_LIFF_ID}?contractId=${contractId}`;
         }
 
-        // --- 輔助: 複製連結 ---
         function copyLink() {
             const copyText = document.getElementById("shareLink");
-            copyText.select();
-            document.execCommand("copy");
-            alert("連結已複製！");
+            copyText.select(); document.execCommand("copy"); alert("連結已複製！");
         }
 
-        // --- 輔助: 列表中的複製連結 ---
         function copyContractLink(contractId, contractName) {
             const inviteUrl = `https://liff.line.me/${MY_LIFF_ID}?contractId=${contractId}`;
-            navigator.clipboard.writeText(inviteUrl).then(() => {
-                alert(`已複製「${contractName}」的邀請連結！`);
-            }).catch(() => {
-                prompt("請手動複製:", inviteUrl);
-            });
+            navigator.clipboard.writeText(inviteUrl).then(() => alert(`已複製「${contractName}」邀請連結！`));
         }
     </script>
+
 </body>
 
 </html>

@@ -234,7 +234,7 @@
         }
 
 
-        // --- 修改後的 goToGamePage ---
+        // [修改] 最終回歸版：使用官方開窗指令
         function goToGamePage(targetContractId) {
             const id = targetContractId || currentContractId;
 
@@ -243,16 +243,15 @@
                 return;
             }
 
-            // 1. 組合 LIFF 網址
-            // 這裡會變成 https://liff.line.me/您的遊戲ID?contractId=xxx
             const targetUrl = `${GAME_LIFF_URL}?contractId=${id}`;
 
-            // 2.【關鍵修改】使用最原始的網頁跳轉
-            // 這會告訴 LINE：「我要去另一個地方了，請重新載入！」
-            // 這樣可以強制消除上一頁留下的轉圈圈
-            window.location.href = targetUrl;
+            // ✅ 這裡改回 liff.openWindow
+            // 因為您已經修好了 Endpoint URL，現在用這個方法絕對會順暢！
+            liff.openWindow({
+                url: targetUrl,
+                external: false // false 代表在 LINE 裡面開新視窗
+            });
         }
-
 
         main();
 

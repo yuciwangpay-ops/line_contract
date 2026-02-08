@@ -233,19 +233,27 @@
 
         }
 
+
+        // --- 修改後的 goToGamePage ---
         function goToGamePage(targetContractId) {
             const id = targetContractId || currentContractId;
-            if (!id) { alert("錯誤：無 ID"); return; }
 
-            // 使用 LIFF 網址
+            if (!id) {
+                alert("錯誤：無 ID");
+                return;
+            }
+
+            // 1. 組合 LIFF 網址
+            // 這裡會變成 https://liff.line.me/您的遊戲ID?contractId=xxx
             const targetUrl = `${GAME_LIFF_URL}?contractId=${id}`;
 
-            // 使用官方開窗指令
-            liff.openWindow({
-                url: targetUrl,
-                external: false // 在 LINE 裡面打開
-            });
+            // 2.【關鍵修改】使用最原始的網頁跳轉
+            // 這會告訴 LINE：「我要去另一個地方了，請重新載入！」
+            // 這樣可以強制消除上一頁留下的轉圈圈
+            window.location.href = targetUrl;
         }
+
+
         main();
 
         // --- 功能 A: 建立契約 ---

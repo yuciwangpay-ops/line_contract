@@ -234,25 +234,23 @@
 
         }
 
-
-        // [修改] 最終回歸版：使用官方開窗指令
+        // [修改] 最終絕對有效版：使用 GitHub 直連 + 原生網頁跳轉
         function goToGamePage(targetContractId) {
+            // 1. 取得 ID
             const id = targetContractId || currentContractId;
+            if (!id) { alert("錯誤：無 ID"); return; }
 
-            if (!id) {
-                alert("錯誤：無 ID");
-                return;
-            }
+            // 2. 確認網址 (您原本設定的 GitHub 網址是對的，不用改)
+            const GAME_LIFF_URL = "https://yuciwangpay-ops.github.io/Game_DailyMBTI/"; 
 
+            // 3. 組合網址
             const targetUrl = `${GAME_LIFF_URL}?contractId=${id}`;
 
-            // ✅ 這裡改回 liff.openWindow
-            // 因為您已經修好了 Endpoint URL，現在用這個方法絕對會順暢！
-            liff.openWindow({
-                url: targetUrl,
-                external: false // false 代表在 LINE 裡面開新視窗
-            });
+            // 4. 【關鍵修改】請把原本的 liff.openWindow 刪掉，換成下面這行！
+            // 這會直接切換網頁，LINE 根本來不及跳出轉圈圈
+            window.location.href = targetUrl;
         }
+
 
         main();
 

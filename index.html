@@ -242,13 +242,18 @@
 
             // 2. 確認網址 (您原本設定的 GitHub 網址是對的，不用改)
             //const GAME_LIFF_URL = "https://yuciwangpay-ops.github.io/Game_DailyMBTI/"; 
-            const GAME_LIFF_URL = "https://liff.line.me/2008941439-M9ODe8F0";
             // 3. 組合網址
-            const targetUrl = `${GAME_LIFF_URL}?contractId=${id}`;
-
+            //const targetUrl = `${GAME_LIFF_URL}?contractId=${id}`;
             // 4. 【關鍵修改】請把原本的 liff.openWindow 刪掉，換成下面這行！
             // 這會直接切換網頁，LINE 根本來不及跳出轉圈圈
-            window.location.href = targetUrl;
+            //window.location.href = targetUrl;
+
+            const GAME_LIFF_URL = "https://liff.line.me/2008941439-M9ODe8F0";
+            liff.openWindow({
+                url: targetUrl,
+                external: false
+            });
+            
         }
 
 

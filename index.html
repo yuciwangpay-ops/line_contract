@@ -248,13 +248,24 @@
             // 這會直接切換網頁，LINE 根本來不及跳出轉圈圈
             //window.location.href = targetUrl;
 
-            const GAME_LIFF_URL = "https://liff.line.me/2008941439-M9ODe8F0";
+            //const GAME_LIFF_URL = "https://liff.line.me/2008941439-M9ODe8F0";
+            //const targetUrl = `${GAME_LIFF_URL}?contractId=${id}`;
+            //liff.openWindow({
+            //    url: targetUrl,
+            //    external: false
+            //});
+
+            // 1. 【關鍵】改用 GitHub 直連網址 (請確認您的網址是正確的)
+            // 這樣 LINE 就不會把它當作 LIFF App 啟動，自然就不會有那個系統轉圈圈
+            const GAME_LIFF_URL = "https://yuciwangpay-ops.github.io/Game_DailyMBTI/";
+            // 2. 組合網址
             const targetUrl = `${GAME_LIFF_URL}?contractId=${id}`;
+            // 3. 執行開窗
+            // 使用 openWindow 開啟普通網頁，體驗最順暢
             liff.openWindow({
                 url: targetUrl,
-                external: false
+                external: false // 在 LINE 內部瀏覽器開啟
             });
-
         }
 
 

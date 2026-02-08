@@ -247,15 +247,16 @@
             // 4. 【關鍵修改】請把原本的 liff.openWindow 刪掉，換成下面這行！
             // 這會直接切換網頁，LINE 根本來不及跳出轉圈圈
             //window.location.href = targetUrl;
-            
-            const GAME_LIFF_URL = "https://line.me/R/app/2008941439-M9ODe8F0";
-            //const GAME_LIFF_URL = "https://liff.line.me/2008941439-M9ODe8F0";
+
+            //const GAME_LIFF_URL = "https://line.me/R/app/2008941439-M9ODe8F0";
+            const GAME_LIFF_URL = "https://liff.line.me/2008941439-M9ODe8F0";
             const targetUrl = `${GAME_LIFF_URL}?contractId=${id}`;
             //window.location.href = targetUrl;
-            liff.openWindow({
-                url: targetUrl,
-                external: false
-            });
+            window.location.replace(targetUrl);
+            //liff.openWindow({
+            //    url: targetUrl,
+            //    external: false
+            //});
 
             // 1. 【關鍵】改用 GitHub 直連網址 (請確認您的網址是正確的)
             // 這樣 LINE 就不會把它當作 LIFF App 啟動，自然就不會有那個系統轉圈圈

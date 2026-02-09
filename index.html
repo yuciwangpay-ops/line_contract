@@ -382,6 +382,7 @@
                     btnJoin.classList.remove("hidden");
                 } else if (data.status === "PENDING") {
                     btnStart.classList.remove("hidden");
+                    btnStart.style.backgroundColor = "#7b1fa2"; // 紫色
                     btnStart.textContent = isCreator ? "🚀 啟動契約" : "⌛ 等待啟動";
                     btnStart.disabled = !isCreator;
                     btnStart.onclick = doStartContract;

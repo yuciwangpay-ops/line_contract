@@ -196,7 +196,13 @@
         // ⚠️ 設定區
         const MY_LIFF_ID = "2008852230-BdH1Y5Fl";
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwAwqRtPZ6ETPkjdnFGTpSIG2lfk_C1TOZaVKp3ykk4AKwUNiJFOXii_0jTUKWYzOJGZQ/exec";
-        const GAME_LIFF_URL = "https://yuciwangpay-ops.github.io/Game_DailyMBTI/";
+
+        // 🎮 遊戲連結設定區 (請在這裡填入您 B 和 C 的網址)
+        const GAME_URLS = {
+            "Game_A": "https://yuciwangpay-ops.github.io/Game_DailyMBTI/",
+            "Game_B": "https://www.google.com", // [待補] 請換成 Game B 的網址
+            "Game_C": "https://yuciwangpay-ops.github.io/Game_Card/"   // [待補] 請換成 Game C 的網址
+        };
 
         // 全域變數
         let userProfile = null;
@@ -214,21 +220,26 @@
                 showJoinMode();
             } else {
                 document.getElementById("createSection").classList.remove("hidden");
-                // 避免重複發送 n8n 訊息
-                // if (!sessionStorage.getItem("msgSent")) {
-                    // try {
-                        // await liff.sendMessages([{ type: 'text', text: '#習慣契約' }]);
-                        // sessionStorage.setItem("msgSent", "true");
-                    // } catch (e) { console.error(e); }
-                // }
             }
         }
 
-        // === 跳轉遊戲 ===
-        function goToGamePage(targetId) {
+        // === 跳轉遊戲 (修正版：支援多種遊戲) ===
+        // 參數 type: "Game_A", "Game_B", "Game_C"
+        function goToGamePage(targetId, type) {
             const id = targetId || currentContractId;
             if (!id) return alert("無契約ID");
-            window.location.replace(`${GAME_LIFF_URL}?contractId=${id}`);
+
+            // 根據 type 取得網址，如果找不到就預設回 Game_A
+            let targetUrl = GAME_URLS[type];
+            if (!targetUrl) {
+                console.warn("未知的遊戲類型:", type, "將使用預設 Game_A");
+                targetUrl = GAME_URLS["Game_A"];
+            }
+
+            // 組合網址參數
+            // 注意：有些網址可能已經有 ? 了，要判斷是用 ? 還是 &
+            const separator = targetUrl.includes("?") ? "&" : "?";
+            window.location.replace(`${targetUrl}${separator}contractId=${id}`);
         }
 
         main();
@@ -306,6 +317,9 @@
                     const isCheckedInToday = json.isCheckedInToday;
                     const isCreator = (String(data.creatorId) === String(userProfile.userId));
 
+                    // 取得當前契約的遊戲類型
+                    const currentGameType = data.gameType || "Game_A";
+
                     document.getElementById("showHabitName").textContent = data.habitName;
                     document.getElementById("showDesc").textContent = data.description;
                     document.getElementById("showPenalty").textContent = data.penalty;
@@ -341,17 +355,19 @@
                         btnStart.disabled = !isCreator;
                         btnStart.style.backgroundColor = isCreator ? "#fd7e14" : "#6c757d";
                         btnStart.style.color = "white";
-                        btnStart.onclick = () => goToGamePage();
+                        // ✨ 傳入遊戲類型
+                        btnStart.onclick = () => goToGamePage(currentContractId, currentGameType);
                     } else if (data.status === "RUNNING") {
                         showBtn(btnCheckIn);
                         if (isCheckedInToday) {
-                            btnCheckIn.textContent = "🎮 前往遊戲！";
+                            btnCheckIn.textContent = "🎮 獲得票券！前往遊戲";
                             btnCheckIn.style.backgroundColor = "#9c27b0";
-                            btnCheckIn.onclick = () => goToGamePage();
+                            // ✨ 傳入遊戲類型
+                            btnCheckIn.onclick = () => goToGamePage(currentContractId, currentGameType);
                         } else {
                             btnCheckIn.textContent = "✅ 今天任務完成！我要打卡";
                             btnCheckIn.style.backgroundColor = "#28a745";
-                            btnCheckIn.onclick = doCheckIn;
+                            btnCheckIn.onclick = () => doCheckIn(currentGameType); // 傳入類型給打卡後的跳轉用
                         }
                         if (isCreator) showBtn(btnDelete);
                         if (data.startDate && data.endDate) {
@@ -382,10 +398,10 @@
             if (data.result === "success") { location.reload(); }
         }
 
-        // ✨ 修改點：詳情頁打卡，成功後傳訊息
-        async function doCheckIn() {
+        // 修改：打卡需接收遊戲類型，以便成功後跳轉
+        async function doCheckIn(gameType) {
             const btn = document.getElementById("btnCheckIn");
-            const habitName = document.getElementById("showHabitName").textContent; // 抓取當前習慣名稱
+            const habitName = document.getElementById("showHabitName").textContent;
             btn.disabled = true; btn.textContent = "打卡中...";
             try {
                 const res = await fetch(GAS_URL, {
@@ -394,10 +410,9 @@
                 });
                 const data = await res.json();
                 if (data.result === "success") {
-                    // 傳送 LINE 訊息
                     try {
                         await liff.sendMessages([{ type: 'text', text: `✅ 我完成了「${habitName}」的打卡！` }]);
-                    } catch (err) { console.error("訊息發送失敗", err); }
+                    } catch (err) { console.error(err); }
 
                     alert("打卡成功！");
                     location.reload();
@@ -406,8 +421,7 @@
             } catch (e) { alert(e); btn.disabled = false; }
         }
 
-        // ✨ 修改點：列表快速打卡，成功後傳訊息
-        async function quickCheckIn(id, name, btn) {
+        async function quickCheckIn(id, name, btn, gameType) { // 新增 gameType 參數
             btn.disabled = true;
             const originalText = btn.textContent;
             btn.textContent = "⏳";
@@ -418,10 +432,9 @@
                 });
                 const json = await res.json();
                 if (json.result === "success") {
-                    // 傳送 LINE 訊息
                     try {
                         await liff.sendMessages([{ type: 'text', text: `✅ 我完成了「${name}」的打卡！` }]);
-                    } catch (err) { console.error("訊息發送失敗", err); }
+                    } catch (err) { console.error(err); }
 
                     alert("打卡成功");
                     location.reload();
@@ -457,24 +470,28 @@
                         const safeName = displayName.replace(/'/g, "\\'");
                         const todayStr = new Date().toLocaleDateString('en-CA');
                         const isExpired = (c.endDate && todayStr > c.endDate);
+                        const cGameType = c.gameType || "Game_A"; // 取得該契約的遊戲類型
 
                         let statusIcon = "🔥";
                         let actionBtnHtml = "";
 
                         if (c.status === "PENDING") {
                             statusIcon = "⏳";
-                            actionBtnHtml = `<button onclick="window.location.href='?contractId=${c.id}'" style="background-color:#0d6efd; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:5px;">等待啟動</button>`;
+                            actionBtnHtml = `<button onclick="window.location.href='?contractId=${c.id}'" style="background-color:#0d6efd; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:5px;">詳情</button>`;
                         } else if (c.status === "GAME_INIT") {
                             statusIcon = "⚙️";
-                            actionBtnHtml = `<button onclick="window.location.href='?contractId=${c.id}'" style="background-color:#fd7e14; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:5px;">設定</button>`;
+                            // ✨ 傳入遊戲類型
+                            actionBtnHtml = `<button onclick="goToGamePage('${c.id}', '${cGameType}')" style="background-color:#fd7e14; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:5px;">設定</button>`;
                         } else if (isExpired) {
                             statusIcon = "🏁";
                             actionBtnHtml = `<button disabled style="background-color:#6c757d; color:white; border:none; padding:5px 10px; border-radius:5px;">已結束</button>`;
                         } else if (c.isDone) {
                             statusIcon = "✅";
-                            actionBtnHtml = `<button onclick="goToGamePage('${c.id}')" style="background-color:#9c27b0; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:5px;">玩遊戲</button>`;
+                            // ✨ 傳入遊戲類型
+                            actionBtnHtml = `<button onclick="goToGamePage('${c.id}', '${cGameType}')" style="background-color:#9c27b0; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:5px;">玩遊戲</button>`;
                         } else {
-                            actionBtnHtml = `<button onclick="quickCheckIn('${c.id}', '${safeName}', this)" style="background-color:#198754; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:5px;">打卡</button>`;
+                            // ✨ 傳入遊戲類型
+                            actionBtnHtml = `<button onclick="quickCheckIn('${c.id}', '${safeName}', this, '${cGameType}')" style="background-color:#198754; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:5px;">打卡</button>`;
                         }
 
                         let percentage = 0;
@@ -504,46 +521,29 @@
             } catch (e) { listDiv.innerHTML = "讀取失敗"; }
         }
 
-        // === 輔助函式：分享與複製連結 (修改版：加入官方帳號好友連結) ===
-
-        // 1. 顯示分享頁面 (建立契約成功後)
+        // === 輔助函式 ===
         function showSharePage(id) {
             document.getElementById("createSection").classList.add("hidden");
             document.getElementById("shareSection").classList.remove("hidden");
 
-            // 組合邀請文字
             const contractUrl = `https://liff.line.me/${MY_LIFF_ID}?contractId=${id}`;
             const botUrl = "https://line.me/R/ti/p/@408wwpgi";
-
             const shareText = `🔥 邀請你加入習慣契約！\n\n1️⃣ 點擊連結加入契約：\n${contractUrl}\n\n2️⃣ 記得加小幫手好友 (才收得到通知喔)：\n${botUrl}`;
-
             document.getElementById("shareLink").value = shareText;
         }
 
-        // 2. 複製連結 (分享頁面上的按鈕)
         function copyLink() {
             const copyText = document.getElementById("shareLink");
-            copyText.select();
-            document.execCommand("copy");
-            alert("已複製邀請文字！傳給朋友吧！");
+            copyText.select(); document.execCommand("copy"); alert("已複製邀請文字！");
         }
 
-        // 3. 複製連結 (列表上的黃色連結按鈕)
         function copyContractLink(id, name) {
             const contractUrl = `https://liff.line.me/${MY_LIFF_ID}?contractId=${id}`;
             const botUrl = "https://line.me/R/ti/p/@408wwpgi";
             const shareText = `🔥 邀請你加入「${name}」習慣契約！\n\n1️⃣ 點擊連結加入契約：\n${contractUrl}\n\n2️⃣ 記得加小幫手好友 (才收得到通知喔)：\n${botUrl}`;
-
-            navigator.clipboard.writeText(shareText).then(() => {
-                alert(`已複製「${name}」的邀請文字！`);
-            }).catch(err => {
-                console.error('複製失敗', err);
-                alert("複製失敗，請手動複製");
-            });
+            navigator.clipboard.writeText(shareText).then(() => alert(`已複製「${name}」邀請文字！`));
         }
-
     </script>
-
 </body>
 
 </html>

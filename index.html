@@ -215,12 +215,12 @@
             } else {
                 document.getElementById("createSection").classList.remove("hidden");
                 // 避免重複發送 n8n 訊息
-                if (!sessionStorage.getItem("msgSent")) {
-                    try {
-                        await liff.sendMessages([{ type: 'text', text: '#習慣契約' }]);
-                        sessionStorage.setItem("msgSent", "true");
-                    } catch (e) { console.error(e); }
-                }
+                // if (!sessionStorage.getItem("msgSent")) {
+                    // try {
+                        // await liff.sendMessages([{ type: 'text', text: '#習慣契約' }]);
+                        // sessionStorage.setItem("msgSent", "true");
+                    // } catch (e) { console.error(e); }
+                // }
             }
         }
 

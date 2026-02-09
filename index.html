@@ -135,8 +135,8 @@
                 <label>懲罰條款</label>
                 <input type="text" id="penalty" placeholder="例如: 請喝咖啡">
 
-                <label>為期幾天</label>
-                <input type="number" id="duration" placeholder="21">
+                <label>為期幾天(建議7~30)</label>
+                <input type="number" id="duration" placeholder="14">
 
                 <label>🎮 選擇挑戰遊戲模式</label>
                 <select id="gameType">
@@ -145,7 +145,7 @@
                     <option value="Game_C">🌱 Game_C (養成計畫)</option>
                 </select>
 
-                <button class="btn btn-create" onclick="submitContract()">建立並產生邀請連結</button>
+                <button class="btn btn-create" onclick="submitContract()">建立契約並產生邀請連結</button>
 
                 <button class="btn" style="background-color: #6c757d; margin-top: 10px;"
                     onclick="toggleCreateMode(false)">❌ 取消</button>
@@ -174,7 +174,7 @@
 
                 <hr style="border:0; border-top:1px dashed #ccc; margin:15px 0;">
 
-                <h4>👥 目前勇者名單：</h4>
+                <h4>👥 目前勇者名單(建議2~6人)：</h4>
                 <ul id="memberListDisplay" style="text-align:left; padding-left: 20px; color: #555;"></ul>
 
                 <p id="statusMessage" style="font-weight:bold; color: #666; margin-top:20px;"></p>

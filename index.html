@@ -408,7 +408,7 @@
             } catch (e) { alert(e); btn.disabled = false; }
         }
 
-        // --- 功能 C: 列表載入 ---
+// --- 功能 C: 列表載入 ---
         async function loadMyContracts() {
             const listDiv = document.getElementById("historyList");
             listDiv.innerHTML = "⏳ 載入中...";
@@ -430,8 +430,10 @@
                         let statusIcon = "🔥";
                         let actionBtnHtml = "";
 
+                        // 狀態按鈕邏輯
                         if (c.status === "PENDING") {
                             statusIcon = "⏳";
+                            // PENDING 狀態下，主要按鈕就是詳情，所以這裡不需額外加，或者可以維持原樣
                             actionBtnHtml = `<button onclick="window.location.href='?contractId=${c.id}'" style="background-color:#0d6efd; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:5px;">詳情</button>`;
                         } else if (c.status === "GAME_INIT") {
                             statusIcon = "⚙️";
@@ -443,9 +445,11 @@
                             statusIcon = "✅";
                             actionBtnHtml = `<button onclick="goToGamePage('${c.id}')" style="background-color:#9c27b0; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:5px;">玩遊戲</button>`;
                         } else {
+                            // RUNNING 且 未打卡
                             actionBtnHtml = `<button onclick="quickCheckIn('${c.id}', '${safeName}', this)" style="background-color:#198754; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:5px;">打卡</button>`;
                         }
 
+                        // 進度條
                         let percentage = 0;
                         if (c.status === "RUNNING") {
                             const total = c.totalMembers || 1;
@@ -453,12 +457,15 @@
                             percentage = Math.round((done / total) * 100);
                         }
 
+                        // ✨ 修改重點：新增一個通用的詳情按鈕 (📄) 在連結按鈕旁邊
+                        // 使用 window.location.href = '?contractId=...' 跳轉到詳情模式
                         listDiv.innerHTML += `
                             <div style="border:1px solid #ddd; padding:12px; margin-bottom:12px; border-radius:10px; background:white;">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
                                     <div><strong>${statusIcon} ${displayName}</strong></div>
                                     <div>
-                                        <button onclick="copyContractLink('${c.id}', '${safeName}')" style="background-color:#ffc107; border:none; padding:5px 8px; border-radius:5px;">🔗</button>
+                                        <button onclick="copyContractLink('${c.id}', '${safeName}')" style="background-color:#ffc107; border:none; padding:5px 8px; border-radius:5px;" title="複製連結">🔗</button>
+                                        <button onclick="window.location.href='?contractId=${c.id}'" style="background-color:#17a2b8; color:white; border:none; padding:5px 8px; border-radius:5px; margin-left:2px;" title="查看詳情">📄</button>
                                         ${actionBtnHtml}
                                     </div>
                                 </div>

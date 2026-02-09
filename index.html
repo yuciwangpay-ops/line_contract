@@ -23,7 +23,8 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        h2, h3 {
+        h2,
+        h3 {
             text-align: center;
             color: #333;
         }
@@ -78,7 +79,8 @@
         }
 
         .hidden {
-            display: none !important; /* 強制隱藏 */
+            display: none !important;
+            /* 強制隱藏 */
         }
 
         /* 邀請連結區塊 */
@@ -115,13 +117,15 @@
 
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
 
-            <button id="btnInitContract" class="btn" style="background-color: #17a2b8;" onclick="toggleCreateMode(true)">
+            <button id="btnInitContract" class="btn" style="background-color: #17a2b8;"
+                onclick="toggleCreateMode(true)">
                 📝 發起新習慣契約
             </button>
 
-            <div id="createForm" class="hidden" style="margin-top: 15px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background-color: #fafafa;">
+            <div id="createForm" class="hidden"
+                style="margin-top: 15px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background-color: #fafafa;">
                 <h3 style="margin-top: 0; color: #555;">✨ 設定契約內容</h3>
-                
+
                 <label>習慣名稱</label>
                 <input type="text" id="habitName" placeholder="例如: 早起運動">
 
@@ -142,8 +146,9 @@
                 </select>
 
                 <button class="btn btn-create" onclick="submitContract()">建立並產生邀請連結</button>
-                
-                <button class="btn" style="background-color: #6c757d; margin-top: 10px;" onclick="toggleCreateMode(false)">❌ 取消</button>
+
+                <button class="btn" style="background-color: #6c757d; margin-top: 10px;"
+                    onclick="toggleCreateMode(false)">❌ 取消</button>
             </div>
         </div>
 
@@ -178,7 +183,8 @@
             <button id="btnJoin" class="btn btn-join hidden" onclick="joinContract()">➕ 沒問題，我要加入！</button>
             <button id="btnStart" class="btn hidden" onclick="doStartContract()">🚀 啟動契約</button>
             <button id="btnCheckIn" class="btn hidden" onclick="doCheckIn()">✅ 我要打卡</button>
-            <button id="btnDelete" class="btn hidden" style="background-color: #dc3545;" onclick="doDeleteContract()">🗑️ 刪除契約</button>
+            <button id="btnDelete" class="btn hidden" style="background-color: #dc3545;"
+                onclick="doDeleteContract()">🗑️ 刪除契約</button>
 
             <button class="btn" style="background-color: #6c757d; margin-top: 20px;"
                 onclick="window.location.href=window.location.pathname">🏠 回到首頁</button>
@@ -190,7 +196,7 @@
         // ⚠️ 設定區
         const MY_LIFF_ID = "2008852230-BdH1Y5Fl";
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwAwqRtPZ6ETPkjdnFGTpSIG2lfk_C1TOZaVKp3ykk4AKwUNiJFOXii_0jTUKWYzOJGZQ/exec";
-        const GAME_LIFF_URL = "https://yuciwangpay-ops.github.io/Game_DailyMBTI/"; 
+        const GAME_LIFF_URL = "https://yuciwangpay-ops.github.io/Game_DailyMBTI/";
 
         // 全域變數
         let userProfile = null;
@@ -200,12 +206,12 @@
             await liff.init({ liffId: MY_LIFF_ID });
             if (!liff.isLoggedIn()) { liff.login(); return; }
             userProfile = await liff.getProfile();
-            
+
             const urlParams = new URLSearchParams(window.location.search);
             currentContractId = urlParams.get("contractId");
 
             if (currentContractId) {
-                showJoinMode(); 
+                showJoinMode();
             } else {
                 document.getElementById("createSection").classList.remove("hidden");
                 // 避免重複發送 n8n 訊息
@@ -245,7 +251,7 @@
             const gameType = document.getElementById("gameType").value;
 
             if (!habitName || !duration) return alert("請填寫名稱與天數");
-            
+
             const btn = document.querySelector(".btn-create");
             btn.disabled = true; btn.textContent = "建立中...";
 
@@ -279,8 +285,8 @@
             const btnStart = document.getElementById("btnStart");
             const btnCheckIn = document.getElementById("btnCheckIn");
             const btnDelete = document.getElementById("btnDelete");
-            
-            [btnJoin, btnStart, btnCheckIn, btnDelete].forEach(b => { 
+
+            [btnJoin, btnStart, btnCheckIn, btnDelete].forEach(b => {
                 b.classList.add("hidden"); b.style.display = "none";
             });
             const showBtn = (btn) => { btn.classList.remove("hidden"); btn.style.display = "block"; };
@@ -325,7 +331,7 @@
                             showBtn(btnStart);
                             btnStart.textContent = isCreator ? "🚀 啟動契約 (隊長限定)" : "⌛ 等待隊長啟動...";
                             btnStart.disabled = !isCreator;
-                            btnStart.style.backgroundColor = isCreator ? "#7b1fa2" : "#6c757d"; 
+                            btnStart.style.backgroundColor = isCreator ? "#7b1fa2" : "#6c757d";
                             btnStart.style.color = "white";
                             btnStart.onclick = doStartContract;
                         }
@@ -349,7 +355,7 @@
                         }
                         if (isCreator) showBtn(btnDelete);
                         if (data.startDate && data.endDate) {
-                             document.getElementById("statusMessage").textContent = `📅 期限：${data.startDate} ~ ${data.endDate}`;
+                            document.getElementById("statusMessage").textContent = `📅 期限：${data.startDate} ~ ${data.endDate}`;
                         }
                     }
                 }
@@ -387,14 +393,14 @@
                     body: JSON.stringify({ action: "log_time", contractId: currentContractId, userId: userProfile.userId, userName: userProfile.displayName })
                 });
                 const data = await res.json();
-                if (data.result === "success") { 
+                if (data.result === "success") {
                     // 傳送 LINE 訊息
                     try {
                         await liff.sendMessages([{ type: 'text', text: `✅ 我完成了「${habitName}」的打卡！` }]);
                     } catch (err) { console.error("訊息發送失敗", err); }
-                    
-                    alert("打卡成功！"); 
-                    location.reload(); 
+
+                    alert("打卡成功！");
+                    location.reload();
                 }
                 else { alert(data.message); btn.disabled = false; }
             } catch (e) { alert(e); btn.disabled = false; }
@@ -411,14 +417,14 @@
                     body: JSON.stringify({ action: "check_in", contractId: id, userId: userProfile.userId, userName: userProfile.displayName })
                 });
                 const json = await res.json();
-                if (json.result === "success") { 
+                if (json.result === "success") {
                     // 傳送 LINE 訊息
                     try {
                         await liff.sendMessages([{ type: 'text', text: `✅ 我完成了「${name}」的打卡！` }]);
                     } catch (err) { console.error("訊息發送失敗", err); }
 
-                    alert("打卡成功"); 
-                    location.reload(); 
+                    alert("打卡成功");
+                    location.reload();
                 }
                 else { alert(json.message); btn.disabled = false; btn.textContent = originalText; }
             } catch (e) { alert(e); btn.disabled = false; btn.textContent = originalText; }
@@ -451,7 +457,7 @@
                         const safeName = displayName.replace(/'/g, "\\'");
                         const todayStr = new Date().toLocaleDateString('en-CA');
                         const isExpired = (c.endDate && todayStr > c.endDate);
-                        
+
                         let statusIcon = "🔥";
                         let actionBtnHtml = "";
 
@@ -490,7 +496,7 @@
                                     </div>
                                 </div>
                                 <div style="background:#e9ecef; height:6px; border-radius:3px; overflow:hidden;">
-                                    <div style="background:${percentage==100?'#ffc107':'#198754'}; width:${percentage}%; height:100%;"></div>
+                                    <div style="background:${percentage == 100 ? '#ffc107' : '#198754'}; width:${percentage}%; height:100%;"></div>
                                 </div>
                             </div>`;
                     });
@@ -498,20 +504,44 @@
             } catch (e) { listDiv.innerHTML = "讀取失敗"; }
         }
 
-        // === 輔助函式 ===
+        // === 輔助函式：分享與複製連結 (修改版：加入官方帳號好友連結) ===
+
+        // 1. 顯示分享頁面 (建立契約成功後)
         function showSharePage(id) {
             document.getElementById("createSection").classList.add("hidden");
             document.getElementById("shareSection").classList.remove("hidden");
-            document.getElementById("shareLink").value = `https://liff.line.me/${MY_LIFF_ID}?contractId=${id}`;
+
+            // 組合邀請文字
+            const contractUrl = `https://liff.line.me/${MY_LIFF_ID}?contractId=${id}`;
+            const botUrl = "https://line.me/R/ti/p/@408wwpgi";
+
+            const shareText = `🔥 邀請你加入習慣契約！\n\n1️⃣ 點擊連結加入契約：\n${contractUrl}\n\n2️⃣ 記得加小幫手好友 (才收得到通知喔)：\n${botUrl}`;
+
+            document.getElementById("shareLink").value = shareText;
         }
+
+        // 2. 複製連結 (分享頁面上的按鈕)
         function copyLink() {
             const copyText = document.getElementById("shareLink");
-            copyText.select(); document.execCommand("copy"); alert("已複製");
+            copyText.select();
+            document.execCommand("copy");
+            alert("已複製邀請文字！傳給朋友吧！");
         }
+
+        // 3. 複製連結 (列表上的黃色連結按鈕)
         function copyContractLink(id, name) {
-            const url = `https://liff.line.me/${MY_LIFF_ID}?contractId=${id}`;
-            navigator.clipboard.writeText(url).then(() => alert("已複製"));
+            const contractUrl = `https://liff.line.me/${MY_LIFF_ID}?contractId=${id}`;
+            const botUrl = "https://line.me/R/ti/p/@408wwpgi";
+            const shareText = `🔥 邀請你加入「${name}」習慣契約！\n\n1️⃣ 點擊連結加入契約：\n${contractUrl}\n\n2️⃣ 記得加小幫手好友 (才收得到通知喔)：\n${botUrl}`;
+
+            navigator.clipboard.writeText(shareText).then(() => {
+                alert(`已複製「${name}」的邀請文字！`);
+            }).catch(err => {
+                console.error('複製失敗', err);
+                alert("複製失敗，請手動複製");
+            });
         }
+
     </script>
 
 </body>

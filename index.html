@@ -339,7 +339,7 @@
                     } else if (data.status === "RUNNING") {
                         showBtn(btnCheckIn);
                         if (isCheckedInToday) {
-                            btnCheckIn.textContent = "🎮 獲得票券！前往遊戲";
+                            btnCheckIn.textContent = "🎮 前往遊戲！";
                             btnCheckIn.style.backgroundColor = "#9c27b0";
                             btnCheckIn.onclick = () => goToGamePage();
                         } else {
@@ -457,7 +457,7 @@
 
                         if (c.status === "PENDING") {
                             statusIcon = "⏳";
-                            actionBtnHtml = `<button onclick="window.location.href='?contractId=${c.id}'" style="background-color:#0d6efd; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:5px;">詳情</button>`;
+                            actionBtnHtml = `<button onclick="window.location.href='?contractId=${c.id}'" style="background-color:#0d6efd; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:5px;">等待啟動</button>`;
                         } else if (c.status === "GAME_INIT") {
                             statusIcon = "⚙️";
                             actionBtnHtml = `<button onclick="window.location.href='?contractId=${c.id}'" style="background-color:#fd7e14; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:5px;">設定</button>`;

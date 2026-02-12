@@ -398,46 +398,78 @@
             if (data.result === "success") { location.reload(); }
         }
 
-        // 修改：打卡需接收遊戲類型，以便成功後跳轉
+// ✨ 修改點：打卡成功後，傳送包含遊戲連結的訊息
         async function doCheckIn(gameType) {
             const btn = document.getElementById("btnCheckIn");
             const habitName = document.getElementById("showHabitName").textContent;
+            
+            // 取得遊戲連結 (預設 Game_A)
+            const type = gameType || "Game_A";
+            let targetUrl = GAME_URLS[type] || GAME_URLS["Game_A"];
+            // 組合帶有 contractId 的完整網址
+            const separator = targetUrl.includes("?") ? "&" : "?";
+            const fullGameUrl = `${targetUrl}${separator}contractId=${currentContractId}`;
+
             btn.disabled = true; btn.textContent = "打卡中...";
+            
             try {
                 const res = await fetch(GAS_URL, {
                     method: "POST",
                     body: JSON.stringify({ action: "log_time", contractId: currentContractId, userId: userProfile.userId, userName: userProfile.displayName })
                 });
                 const data = await res.json();
-                if (data.result === "success") {
+                
+                if (data.result === "success") { 
+                    // 傳送 LINE 訊息 (包含連結)
                     try {
-                        await liff.sendMessages([{ type: 'text', text: `✅ 我完成了「${habitName}」的打卡！` }]);
-                    } catch (err) { console.error(err); }
-
-                    alert("打卡成功！");
-                    location.reload();
+                        await liff.sendMessages([
+                            { 
+                                type: 'text', 
+                                text: `✅ 我完成了「${habitName}」的打卡！\n\n🎮 獲得遊戲券一張，點擊下方連結開始冒險：\n${fullGameUrl}` 
+                            }
+                        ]);
+                    } catch (err) { console.error("訊息發送失敗", err); }
+                    
+                    alert("打卡成功！"); 
+                    location.reload(); 
                 }
                 else { alert(data.message); btn.disabled = false; }
             } catch (e) { alert(e); btn.disabled = false; }
         }
 
-        async function quickCheckIn(id, name, btn, gameType) { // 新增 gameType 參數
+
+// ✨ 修改點：列表快速打卡成功後，傳送包含遊戲連結的訊息
+        async function quickCheckIn(id, name, btn, gameType) {
             btn.disabled = true;
             const originalText = btn.textContent;
             btn.textContent = "⏳";
+            
+            // 取得遊戲連結
+            const type = gameType || "Game_A";
+            let targetUrl = GAME_URLS[type] || GAME_URLS["Game_A"];
+            const separator = targetUrl.includes("?") ? "&" : "?";
+            const fullGameUrl = `${targetUrl}${separator}contractId=${id}`;
+
             try {
                 const res = await fetch(GAS_URL, {
                     method: "POST",
                     body: JSON.stringify({ action: "check_in", contractId: id, userId: userProfile.userId, userName: userProfile.displayName })
                 });
                 const json = await res.json();
-                if (json.result === "success") {
+                
+                if (json.result === "success") { 
+                    // 傳送 LINE 訊息 (包含連結)
                     try {
-                        await liff.sendMessages([{ type: 'text', text: `✅ 我完成了「${name}」的打卡！` }]);
-                    } catch (err) { console.error(err); }
+                        await liff.sendMessages([
+                            { 
+                                type: 'text', 
+                                text: `✅ 我完成了「${name}」的打卡！\n\n🎮 獲得遊戲券一張，點擊下方連結開始冒險：\n${fullGameUrl}` 
+                            }
+                        ]);
+                    } catch (err) { console.error("訊息發送失敗", err); }
 
-                    alert("打卡成功");
-                    location.reload();
+                    alert("打卡成功"); 
+                    location.reload(); 
                 }
                 else { alert(json.message); btn.disabled = false; btn.textContent = originalText; }
             } catch (e) { alert(e); btn.disabled = false; btn.textContent = originalText; }

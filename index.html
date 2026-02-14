@@ -9,22 +9,34 @@
 
     <style>
         /* 1. 全域設定與背景優化 */
-        body {
+
+body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             padding: 20px;
             margin: 0;
             font-size: 16px;
             color: #333;
-
-            /* ✨ 魔法漸層背景 (您可以自己換顏色) */
-            /* 這裡設定了一個從深藍到紫色的漸層，很有遊戲契約的神秘感 */
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-
-            /* 確保背景填滿整個手機螢幕高度，不會有白邊 */
+            
+            /* ✨ 修改這裡：設定背景圖片 ✨ */
+            /* url('圖片檔名') -> 請確認這裡的檔名跟您上傳的一模一樣 */
+            background-image: url('img/Gemini_contract_BG.png');
+            
+            /* 讓圖片永遠填滿整個螢幕，不會變形或留白 */
+            background-size: cover;
+            
+            /* 讓圖片正中間對齊螢幕 */
+            background-position: center;
+            
+            /* (選用) 讓背景固定住，當您往下滑動時，只有卡片會動，背景不會動 (很有質感！) */
+            background-attachment: fixed;
+            
+            /* 防止圖片重複排列 */
+            background-repeat: no-repeat;
+            
+            /* 確保高度足夠 */
             min-height: 100vh;
             box-sizing: border-box;
         }
-
         /* 2. 主容器：改成「毛玻璃卡片」風格 */
         .container {
             max-width: 600px;

@@ -10,55 +10,59 @@
     <style>
         /* 1. 全域設定與背景優化 */
 
-body {
+        body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             padding: 20px;
             margin: 0;
             font-size: 16px;
             color: #333;
-            
+
             /* ✨ 修改這裡：設定背景圖片 ✨ */
             /* url('圖片檔名') -> 請確認這裡的檔名跟您上傳的一模一樣 */
             background-image: url('img/Gemini_contract_BG.png');
-            
+
             /* 讓圖片永遠填滿整個螢幕，不會變形或留白 */
             background-size: cover;
-            
+
             /* 讓圖片正中間對齊螢幕 */
             background-position: center;
-            
+
             /* (選用) 讓背景固定住，當您往下滑動時，只有卡片會動，背景不會動 (很有質感！) */
             background-attachment: fixed;
-            
+
             /* 防止圖片重複排列 */
             background-repeat: no-repeat;
-            
+
             /* 確保高度足夠 */
             min-height: 100vh;
             box-sizing: border-box;
         }
-        /* 2. 主容器：改成「毛玻璃卡片」風格 */
+
+        /* 2. 主容器：改成「更透的」毛玻璃風格 */
         .container {
             max-width: 600px;
             margin: 0 auto;
 
-            /* ✨ 關鍵修改：半透明白色背景 */
-            background-color: rgba(255, 255, 255, 0.92);
+            /* ✨ 關鍵修改在這裡 ✨ */
+            /* 原本是 0.92 (很白)，改成 0.65 (65%不透明度) */
+            /* 您可以試試看 0.6 ~ 0.8 之間的數字，數字越小越透明 */
+            background-color: rgba(255, 255, 255, 0.65);
 
-            /* ✨ 關鍵修改：背景模糊效果 (像毛玻璃一樣透出背後的顏色) */
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            /* 背景模糊效果 (讓文字依然清晰，但背景透出來) */
+            backdrop-filter: blur(15px);
+            /* 模糊度調高一點，避免背景線條干擾文字 */
+            -webkit-backdrop-filter: blur(15px);
 
             padding: 25px;
 
-            /* 讓圓角更圓潤一點，看起來更現代 */
+            /* 圓角 */
             border-radius: 20px;
 
-            /* 加深陰影，製造「漂浮感」 */
+            /* 陰影 (保留漂浮感) */
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
 
-            /* 加一個很細的白邊框，增加精緻度 */
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            /* 邊框改成更淡的半透明白線 */
+            border: 1px solid rgba(255, 255, 255, 0.4);
         }
 
         /* 標題美化 */

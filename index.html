@@ -6,101 +6,174 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>習慣打卡契約</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
     <style>
+        /* 1. 全域設定與背景優化 */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             padding: 20px;
-            background-color: #f5f5f5;
+            margin: 0;
             font-size: 16px;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h2, h3 {
-            text-align: center;
             color: #333;
-        }
 
-        label {
-            display: block;
-            margin-top: 15px;
-            font-weight: bold;
-            color: #555;
-        }
+            /* ✨ 魔法漸層背景 (您可以自己換顏色) */
+            /* 這裡設定了一個從深藍到紫色的漸層，很有遊戲契約的神秘感 */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 
-        input,
-        select {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px;
-            margin-top: 5px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            /* 確保背景填滿整個手機螢幕高度，不會有白邊 */
+            min-height: 100vh;
             box-sizing: border-box;
         }
 
-        /* 按鈕共用樣式 */
+        /* 2. 主容器：改成「毛玻璃卡片」風格 */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+
+            /* ✨ 關鍵修改：半透明白色背景 */
+            background-color: rgba(255, 255, 255, 0.92);
+
+            /* ✨ 關鍵修改：背景模糊效果 (像毛玻璃一樣透出背後的顏色) */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+
+            padding: 25px;
+
+            /* 讓圓角更圓潤一點，看起來更現代 */
+            border-radius: 20px;
+
+            /* 加深陰影，製造「漂浮感」 */
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+
+            /* 加一個很細的白邊框，增加精緻度 */
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        /* 標題美化 */
+        h2 {
+            text-align: center;
+            color: #4a4a4a;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        h3 {
+            text-align: center;
+            color: #555;
+            margin-top: 0;
+        }
+
+        /* 輸入框美化 */
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 600;
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 2px solid #eee;
+            /* 邊框改淡 */
+            border-radius: 12px;
+            /* 圓角加大 */
+            background: #f9f9f9;
+            /* 微微的灰底 */
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        /* 輸入框選取時的特效 */
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #764ba2;
+            /* 跟背景呼應的紫色 */
+            background: #fff;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+        }
+
+        /* 按鈕共用樣式 (加入微動畫) */
         .btn {
             width: 100%;
-            padding: 15px;
-            font-size: 18px;
+            padding: 14px;
+            font-size: 16px;
             font-weight: bold;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
+            /* 圓角加大 */
             margin-top: 15px;
             cursor: pointer;
             color: white;
-            transition: opacity 0.2s;
+            transition: transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        .btn:hover {
-            opacity: 0.9;
+        .btn:active {
+            transform: scale(0.98);
+            /* 按下去縮小一點點的觸感 */
         }
 
         .btn:disabled {
             background-color: #ccc !important;
             cursor: not-allowed;
+            box-shadow: none;
         }
 
+        /* 各種按鈕顏色 */
         .btn-create {
-            background-color: #00B900;
+            background: linear-gradient(to right, #00b09b, #96c93d);
         }
 
+        /* 漸層綠 */
         .btn-join {
-            background-color: #007bff;
+            background: linear-gradient(to right, #2193b0, #6dd5ed);
         }
+
+        /* 漸層藍 */
+
+        /* 一般功能按鈕維持單色比較清楚 */
 
         .hidden {
             display: none !important;
         }
 
-        /* 邀請連結區塊 */
+        /* 分享區塊美化 */
         #shareSection {
             text-align: center;
-            background: #eef;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px dashed #007bff;
+            background: rgba(238, 238, 255, 0.6);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px dashed #764ba2;
             margin-top: 20px;
         }
 
         #shareLink {
-            width: 100%;
             font-family: monospace;
             background: #fff;
-            padding: 8px;
             border: 1px solid #ddd;
-            margin: 10px 0;
-            resize: none;
+            color: #666;
+        }
+
+        /* 列表項目美化 */
+        #historyList>div {
+            transition: transform 0.2s;
+        }
+
+        #historyList>div:hover {
+            transform: translateY(-2px);
+            /* 滑鼠移過去會浮起來一點 */
         }
     </style>
+
+
 </head>
 
 <body>
@@ -109,18 +182,20 @@
 
         <div id="createSection">
             <h2 style="margin-top: 0; margin-bottom: 10px;">🤝 進行中契約</h2>
-            
+
             <div id="historyList" style="margin-top: 15px;"></div>
 
             <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
 
-            <button id="btnInitContract" class="btn" style="background-color: #17a2b8;" onclick="toggleCreateMode(true)">
+            <button id="btnInitContract" class="btn" style="background-color: #17a2b8;"
+                onclick="toggleCreateMode(true)">
                 📝 發起新習慣契約
             </button>
 
-            <div id="createForm" class="hidden" style="margin-top: 15px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background-color: #fafafa;">
+            <div id="createForm" class="hidden"
+                style="margin-top: 15px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background-color: #fafafa;">
                 <h3 style="margin-top: 0; color: #555;">✨ 設定契約內容</h3>
-                
+
                 <label>習慣名稱</label>
                 <input type="text" id="habitName" placeholder="例如: 早起運動">
 
@@ -141,7 +216,8 @@
                 </select>
 
                 <button class="btn btn-create" onclick="submitContract()">建立並產生邀請連結</button>
-                <button class="btn" style="background-color: #6c757d; margin-top: 10px;" onclick="toggleCreateMode(false)">❌ 取消</button>
+                <button class="btn" style="background-color: #6c757d; margin-top: 10px;"
+                    onclick="toggleCreateMode(false)">❌ 取消</button>
             </div>
         </div>
 
@@ -172,19 +248,20 @@
 
                 <p id="statusMessage" style="font-weight:bold; color: #666; margin-top:20px;"></p>
 
-                <div id="gameResultArea" class="hidden" style="margin-top: 20px; padding: 15px; background-color: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px;">
+                <div id="gameResultArea" class="hidden"
+                    style="margin-top: 20px; padding: 15px; background-color: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px;">
                     <h4 style="margin-top: 0; color: #856404; text-align: center;">🎉 遊戲結算報告 🎉</h4>
-                    
+
                     <p style="margin-bottom: 5px; color: #856404;"><strong>🔮 冒險結局：</strong></p>
                     <p id="resStory" style="white-space: pre-wrap; margin-top:0; color: #333;"></p>
-                    
+
                     <hr style="border-top: 1px dashed #ffeeba;">
 
                     <p style="margin-bottom: 5px; color: #856404;"><strong>🧠 MBTI 分析：</strong></p>
                     <p id="resMBTI" style="white-space: pre-wrap; margin-top:0; color: #333; font-weight: bold;"></p>
 
                     <hr style="border-top: 1px dashed #ffeeba;">
-                    
+
                     <p style="margin-bottom: 5px; color: #856404;"><strong>💡 教練建議：</strong></p>
                     <p id="resAdvice" style="white-space: pre-wrap; margin-top:0; color: #333;"></p>
                 </div>
@@ -193,7 +270,8 @@
             <button id="btnJoin" class="btn btn-join hidden" onclick="joinContract()">➕ 沒問題，我要加入！</button>
             <button id="btnStart" class="btn hidden" onclick="doStartContract()">🚀 啟動契約</button>
             <button id="btnCheckIn" class="btn hidden" onclick="doCheckIn()">✅ 我要打卡</button>
-            <button id="btnDelete" class="btn hidden" style="background-color: #dc3545;" onclick="doDeleteContract()">🗑️ 刪除契約</button>
+            <button id="btnDelete" class="btn hidden" style="background-color: #dc3545;"
+                onclick="doDeleteContract()">🗑️ 刪除契約</button>
 
             <button class="btn" style="background-color: #6c757d; margin-top: 20px;"
                 onclick="window.location.href=window.location.pathname">🏠 回到首頁</button>
@@ -205,12 +283,12 @@
         // ⚠️ 設定區
         const MY_LIFF_ID = "2008852230-BdH1Y5Fl";
         const GAS_URL = "https://script.google.com/macros/s/AKfycbwAwqRtPZ6ETPkjdnFGTpSIG2lfk_C1TOZaVKp3ykk4AKwUNiJFOXii_0jTUKWYzOJGZQ/exec";
-        
+
         // 🎮 遊戲連結設定區
         const GAME_URLS = {
-            "Game_A": "https://yuciwangpay-ops.github.io/Game_DailyMBTI/", 
-            "Game_B": "https://www.google.com", 
-            "Game_C": "https://www.yahoo.com"   
+            "Game_A": "https://yuciwangpay-ops.github.io/Game_DailyMBTI/",
+            "Game_B": "https://www.google.com",
+            "Game_C": "https://www.yahoo.com"
         };
 
         // 全域變數
@@ -225,7 +303,7 @@
                 return;
             }
             userProfile = await liff.getProfile();
-            
+
             const urlParams = new URLSearchParams(window.location.search);
             currentContractId = urlParams.get("contractId");
 
@@ -242,7 +320,7 @@
         function goToGamePage(targetId, type) {
             const id = targetId || currentContractId;
             if (!id) return alert("無契約ID");
-            
+
             let targetUrl = GAME_URLS[type];
             if (!targetUrl) {
                 console.warn("未知的遊戲類型:", type, "將使用預設 Game_A");
@@ -273,7 +351,7 @@
             const gameType = document.getElementById("gameType").value;
 
             if (!habitName || !duration) return alert("請填寫名稱與天數");
-            
+
             const btn = document.querySelector(".btn-create");
             btn.disabled = true; btn.textContent = "建立中...";
 
@@ -297,7 +375,7 @@
             } catch (e) { alert(e); btn.disabled = false; }
         }
 
-// === 功能 B: 詳情介面 (修正：顯示遊戲結果) ===
+        // === 功能 B: 詳情介面 (修正：顯示遊戲結果) ===
         async function showJoinMode() {
             document.getElementById("createSection").classList.add("hidden");
             document.getElementById("shareSection").classList.add("hidden");
@@ -307,15 +385,15 @@
             const btnStart = document.getElementById("btnStart");
             const btnCheckIn = document.getElementById("btnCheckIn");
             const btnDelete = document.getElementById("btnDelete");
-            
-            [btnJoin, btnStart, btnCheckIn, btnDelete].forEach(b => { 
+
+            [btnJoin, btnStart, btnCheckIn, btnDelete].forEach(b => {
                 b.classList.add("hidden"); b.style.display = "none";
             });
             const showBtn = (btn) => { btn.classList.remove("hidden"); btn.style.display = "block"; };
 
             document.getElementById("memberListDisplay").innerHTML = "";
             // 先隱藏結果區，避免切換時殘留
-            document.getElementById("gameResultArea").classList.add("hidden"); 
+            document.getElementById("gameResultArea").classList.add("hidden");
 
             try {
                 const res = await fetch(GAS_URL, {
@@ -356,7 +434,7 @@
                         document.getElementById("resStory").textContent = r.finalStory || "（無資料）";
                         document.getElementById("resAdvice").textContent = r.coachAdvice || "（無資料）";
                         document.getElementById("resMBTI").textContent = r.mbtiResult || "（無資料）";
-                        
+
                         // 顯示黃色區塊
                         document.getElementById("gameResultArea").classList.remove("hidden");
                     }
@@ -369,7 +447,7 @@
                             showBtn(btnStart);
                             btnStart.textContent = isCreator ? "🚀 啟動契約 (隊長限定)" : "⌛ 等待隊長啟動...";
                             btnStart.disabled = !isCreator;
-                            btnStart.style.backgroundColor = isCreator ? "#7b1fa2" : "#6c757d"; 
+                            btnStart.style.backgroundColor = isCreator ? "#7b1fa2" : "#6c757d";
                             btnStart.style.color = "white";
                             btnStart.onclick = doStartContract;
                         }
@@ -393,7 +471,7 @@
                         }
                         if (isCreator) showBtn(btnDelete);
                         if (data.startDate && data.endDate) {
-                             document.getElementById("statusMessage").textContent = `📅 期限：${data.startDate} ~ ${data.endDate}`;
+                            document.getElementById("statusMessage").textContent = `📅 期限：${data.startDate} ~ ${data.endDate}`;
                         }
                     }
                 }
@@ -423,7 +501,7 @@
         async function doCheckIn(gameType) {
             const btn = document.getElementById("btnCheckIn");
             const habitName = document.getElementById("showHabitName").textContent;
-            
+
             const type = gameType || "Game_A";
             let targetUrl = GAME_URLS[type] || GAME_URLS["Game_A"];
             const separator = targetUrl.includes("?") ? "&" : "?";
@@ -436,15 +514,15 @@
                     body: JSON.stringify({ action: "log_time", contractId: currentContractId, userId: userProfile.userId, userName: userProfile.displayName })
                 });
                 const data = await res.json();
-                if (data.result === "success") { 
+                if (data.result === "success") {
                     try {
                         await liff.sendMessages([
                             { type: 'text', text: `✅ 我完成了「${habitName}」的打卡！\n\n🎮 點擊下方連結開始冒險：\n${fullGameUrl}` }
                         ]);
                     } catch (err) { console.error(err); }
-                    
-                    alert("打卡成功！"); 
-                    location.reload(); 
+
+                    alert("打卡成功！");
+                    location.reload();
                 }
                 else { alert(data.message); btn.disabled = false; }
             } catch (e) { alert(e); btn.disabled = false; }
@@ -466,15 +544,15 @@
                     body: JSON.stringify({ action: "check_in", contractId: id, userId: userProfile.userId, userName: userProfile.displayName })
                 });
                 const json = await res.json();
-                if (json.result === "success") { 
+                if (json.result === "success") {
                     try {
                         await liff.sendMessages([
                             { type: 'text', text: `✅ 我完成了「${name}」的打卡！\n\n🎮 點擊下方連結開始冒險：\n${fullGameUrl}` }
                         ]);
                     } catch (err) { console.error(err); }
 
-                    alert("打卡成功"); 
-                    location.reload(); 
+                    alert("打卡成功");
+                    location.reload();
                 }
                 else { alert(json.message); btn.disabled = false; btn.textContent = originalText; }
             } catch (e) { alert(e); btn.disabled = false; btn.textContent = originalText; }
@@ -513,7 +591,7 @@
                         const todayStr = new Date().toLocaleDateString('en-CA');
                         const isExpired = (c.endDate && todayStr > c.endDate);
                         const cGameType = c.gameType || "Game_A";
-                        
+
                         let statusIcon = "🔥";
                         let actionBtnHtml = "";
 
@@ -552,7 +630,7 @@
                                     </div>
                                 </div>
                                 <div style="background:#e9ecef; height:6px; border-radius:3px; overflow:hidden;">
-                                    <div style="background:${percentage==100?'#ffc107':'#198754'}; width:${percentage}%; height:100%;"></div>
+                                    <div style="background:${percentage == 100 ? '#ffc107' : '#198754'}; width:${percentage}%; height:100%;"></div>
                                 </div>
                             </div>`;
                     });
@@ -564,7 +642,7 @@
         function showSharePage(id) {
             document.getElementById("createSection").classList.add("hidden");
             document.getElementById("shareSection").classList.remove("hidden");
-            
+
             const contractUrl = `https://liff.line.me/${MY_LIFF_ID}?contractId=${id}`;
             const botUrl = "https://line.me/R/ti/p/@408wwpgi";
             const shareText = `🔥 邀請你加入習慣契約！\n\n1️⃣ 點擊連結加入契約：\n${contractUrl}\n\n2️⃣ 記得加小幫手好友 (才收得到通知喔)：\n${botUrl}`;

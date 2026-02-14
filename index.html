@@ -171,6 +171,23 @@
                 <ul id="memberListDisplay" style="text-align:left; padding-left: 20px; color: #555;"></ul>
 
                 <p id="statusMessage" style="font-weight:bold; color: #666; margin-top:20px;"></p>
+
+                <div id="gameResultArea" class="hidden" style="margin-top: 20px; padding: 15px; background-color: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px;">
+                    <h4 style="margin-top: 0; color: #856404; text-align: center;">🎉 遊戲結算報告 🎉</h4>
+                    
+                    <p style="margin-bottom: 5px; color: #856404;"><strong>🔮 冒險結局：</strong></p>
+                    <p id="resStory" style="white-space: pre-wrap; margin-top:0; color: #333;"></p>
+                    
+                    <hr style="border-top: 1px dashed #ffeeba;">
+
+                    <p style="margin-bottom: 5px; color: #856404;"><strong>💡 教練建議：</strong></p>
+                    <p id="resAdvice" style="white-space: pre-wrap; margin-top:0; color: #333;"></p>
+
+                    <hr style="border-top: 1px dashed #ffeeba;">
+
+                    <p style="margin-bottom: 5px; color: #856404;"><strong>🧠 MBTI 分析：</strong></p>
+                    <p id="resMBTI" style="white-space: pre-wrap; margin-top:0; color: #333; font-weight: bold;"></p>
+                </div>
             </div>
 
             <button id="btnJoin" class="btn btn-join hidden" onclick="joinContract()">➕ 沒問題，我要加入！</button>
@@ -280,7 +297,7 @@
             } catch (e) { alert(e); btn.disabled = false; }
         }
 
-        // === 詳情模式 ===
+// === 功能 B: 詳情介面 (修正：顯示遊戲結果) ===
         async function showJoinMode() {
             document.getElementById("createSection").classList.add("hidden");
             document.getElementById("shareSection").classList.add("hidden");
@@ -297,6 +314,8 @@
             const showBtn = (btn) => { btn.classList.remove("hidden"); btn.style.display = "block"; };
 
             document.getElementById("memberListDisplay").innerHTML = "";
+            // 先隱藏結果區，避免切換時殘留
+            document.getElementById("gameResultArea").classList.add("hidden"); 
 
             try {
                 const res = await fetch(GAS_URL, {
@@ -331,6 +350,18 @@
                     document.getElementById("loadingText").classList.add("hidden");
                     document.getElementById("contractDetails").classList.remove("hidden");
 
+                    // ✨ [新增] 檢查是否有遊戲結果，有的話就顯示 ✨
+                    if (json.myGameResult) {
+                        const r = json.myGameResult;
+                        document.getElementById("resStory").textContent = r.finalStory || "（無資料）";
+                        document.getElementById("resAdvice").textContent = r.coachAdvice || "（無資料）";
+                        document.getElementById("resMBTI").textContent = r.mbtiResult || "（無資料）";
+                        
+                        // 顯示黃色區塊
+                        document.getElementById("gameResultArea").classList.remove("hidden");
+                    }
+
+                    // 按鈕狀態判斷
                     if (data.status === "PENDING") {
                         if (!amIInList) {
                             showBtn(btnJoin);

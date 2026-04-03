@@ -1,682 +1,79 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>習慣打卡契約</title>
+    <title>建立靈魂小怪獸群組</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-
-    <style>
-        /* 1. 全域設定與背景優化 */
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            padding: 20px;
-            margin: 0;
-            font-size: 16px;
-            color: #333;
-
-            /* ✨ 修改這裡：設定背景圖片 ✨ */
-            /* url('圖片檔名') -> 請確認這裡的檔名跟您上傳的一模一樣 */
-            background-image: url('img/Gemini_contract_BG.png');
-
-            /* 讓圖片永遠填滿整個螢幕，不會變形或留白 */
-            background-size: cover;
-
-            /* 讓圖片正中間對齊螢幕 */
-            background-position: center;
-
-            /* (選用) 讓背景固定住，當您往下滑動時，只有卡片會動，背景不會動 (很有質感！) */
-            background-attachment: fixed;
-
-            /* 防止圖片重複排列 */
-            background-repeat: no-repeat;
-
-            /* 確保高度足夠 */
-            min-height: 100vh;
-            box-sizing: border-box;
-        }
-
-        /* 2. 主容器：改成「更透的」毛玻璃風格 */
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-
-            /* ✨ 關鍵修改在這裡 ✨ */
-            /* 原本是 0.92 (很白)，改成 0.65 (65%不透明度) */
-            /* 您可以試試看 0.6 ~ 0.8 之間的數字，數字越小越透明 */
-            background-color: rgba(255, 255, 255, 0.5);
-
-            /* 背景模糊效果 (讓文字依然清晰，但背景透出來) */
-            backdrop-filter: blur(15px);
-            /* 模糊度調高一點，避免背景線條干擾文字 */
-            -webkit-backdrop-filter: blur(15px);
-
-            padding: 25px;
-
-            /* 圓角 */
-            border-radius: 20px;
-
-            /* 陰影 (保留漂浮感) */
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-
-            /* 邊框改成更淡的半透明白線 */
-            border: 1px solid rgba(255, 255, 255, 0.4);
-        }
-
-        /* 標題美化 */
-        h2 {
-            text-align: center;
-            color: #4a4a4a;
-            margin-bottom: 20px;
-            font-weight: 700;
-        }
-
-        h3 {
-            text-align: center;
-            color: #555;
-            margin-top: 0;
-        }
-
-        /* 輸入框美化 */
-        label {
-            display: block;
-            margin-top: 15px;
-            font-weight: 600;
-            color: #555;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-
-        input,
-        select,
-        textarea {
-            width: 100%;
-            padding: 12px 15px;
-            font-size: 16px;
-            border: 2px solid #eee;
-            /* 邊框改淡 */
-            border-radius: 12px;
-            /* 圓角加大 */
-            background: #f9f9f9;
-            /* 微微的灰底 */
-            box-sizing: border-box;
-            transition: all 0.3s ease;
-        }
-
-        /* 輸入框選取時的特效 */
-        input:focus,
-        select:focus,
-        textarea:focus {
-            border-color: #764ba2;
-            /* 跟背景呼應的紫色 */
-            background: #fff;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
-        }
-
-        /* 按鈕共用樣式 (加入微動畫) */
-        .btn {
-            width: 100%;
-            padding: 14px;
-            font-size: 16px;
-            font-weight: bold;
-            border: none;
-            border-radius: 12px;
-            /* 圓角加大 */
-            margin-top: 15px;
-            cursor: pointer;
-            color: white;
-            transition: transform 0.1s, box-shadow 0.2s;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .btn:active {
-            transform: scale(0.98);
-            /* 按下去縮小一點點的觸感 */
-        }
-
-        .btn:disabled {
-            background-color: #ccc !important;
-            cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        /* 各種按鈕顏色 */
-        .btn-create {
-            background: linear-gradient(to right, #00b09b, #96c93d);
-        }
-
-        /* 漸層綠 */
-        .btn-join {
-            background: linear-gradient(to right, #2193b0, #6dd5ed);
-        }
-
-        /* 漸層藍 */
-
-        /* 一般功能按鈕維持單色比較清楚 */
-
-        .hidden {
-            display: none !important;
-        }
-
-        /* 分享區塊美化 */
-        #shareSection {
-            text-align: center;
-            background: rgba(238, 238, 255, 0.6);
-            padding: 20px;
-            border-radius: 15px;
-            border: 2px dashed #764ba2;
-            margin-top: 20px;
-        }
-
-        #shareLink {
-            font-family: monospace;
-            background: #fff;
-            border: 1px solid #ddd;
-            color: #666;
-        }
-
-        /* 列表項目美化 */
-        #historyList>div {
-            transition: transform 0.2s;
-        }
-
-        #historyList>div:hover {
-            transform: translateY(-2px);
-            /* 滑鼠移過去會浮起來一點 */
-        }
-    </style>
-
-
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
+<body class="bg-gray-100 p-6">
 
-<body>
-
-    <div class="container">
-
-        <div id="createSection">
-            <h2 style="margin-top: 0; margin-bottom: 10px;">🤝 進行中契約</h2>
-
-            <div id="historyList" style="margin-top: 15px;"></div>
-
-            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
-
-            <button id="btnInitContract" class="btn" style="background-color: #17a2b8;"
-                onclick="toggleCreateMode(true)">
-                📝 發起新習慣契約
-            </button>
-
-            <div id="createForm" class="hidden"
-                style="margin-top: 15px; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background-color: #fafafa;">
-                <h3 style="margin-top: 0; color: #555;">✨ 設定契約內容</h3>
-
-                <label>習慣名稱</label>
-                <input type="text" id="habitName" placeholder="例如: 早起運動">
-
-                <label>習慣描述</label>
-                <input type="text" id="description" placeholder="例如: 晨跑3公里">
-
-                <label>懲罰條款</label>
-                <input type="text" id="penalty" placeholder="例如: 請喝咖啡">
-
-                <label>為期幾天</label>
-                <input type="number" id="duration" placeholder="21">
-
-                <label>🎮 選擇挑戰遊戲模式</label>
-                <select id="gameType">
-                    <option value="Game_A">⚔️ Game_A (勇者打怪)</option>
-                    <option value="Game_B">🎲 Game_B (大富翁)</option>
-                    <option value="Game_C">🌱 Game_C (養成計畫)</option>
-                </select>
-
-                <button class="btn btn-create" onclick="submitContract()">建立並產生邀請連結</button>
-                <button class="btn" style="background-color: #6c757d; margin-top: 10px;"
-                    onclick="toggleCreateMode(false)">❌ 取消</button>
-            </div>
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6 mt-4">
+        <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">🛡️ 建立冒險小組</h2>
+        
+        <div class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="groupName">
+                為你們的小組取個響亮的名字吧！
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-400" id="groupName" type="text" placeholder="例如：晨型人俱樂部、期末生存營">
         </div>
 
-        <div id="shareSection" class="hidden">
-            <h2>🎉 契約建立成功！</h2>
-            <p>請複製下方連結傳給朋友：</p>
-            <textarea id="shareLink" rows="3" readonly></textarea>
-            <button class="btn btn-join" onclick="copyLink()">複製連結</button>
-            <button class="btn" style="background-color: #6c757d;" onclick="location.reload()">回到首頁</button>
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="habitGoal">
+                你自己的專屬習慣目標是？
+            </label>
+            <input class="shadow appearance-none border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-400" id="habitGoal" type="text" placeholder="例如：每天喝水2000cc、背20個單字">
         </div>
 
-        <div id="joinSection" class="hidden">
-            <h2>🤝 習慣挑戰大廳</h2>
-
-            <p id="loadingText" style="text-align:center; color:#666;">正在讀取契約與成員...</p>
-
-            <div id="contractDetails" class="hidden"
-                style="background: white; padding: 20px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 20px;">
-                <h3 id="showHabitName" style="margin-top:0; color:#00B900;"></h3>
-                <p><strong>📝 內容：</strong><span id="showDesc"></span></p>
-                <p><strong>⚠️ 懲罰：</strong><span id="showPenalty" style="color:red;"></span></p>
-                <p><strong>🗓 天數：</strong><span id="showDuration"></span> 天</p>
-
-                <hr style="border:0; border-top:1px dashed #ccc; margin:15px 0;">
-
-                <h4>👥 目前勇者名單：</h4>
-                <ul id="memberListDisplay" style="text-align:left; padding-left: 20px; color: #555;"></ul>
-
-                <p id="statusMessage" style="font-weight:bold; color: #666; margin-top:20px;"></p>
-
-                <div id="gameResultArea" class="hidden"
-                    style="margin-top: 20px; padding: 15px; background-color: #fff3cd; border: 1px solid #ffeeba; border-radius: 8px;">
-                    <h4 style="margin-top: 0; color: #856404; text-align: center;">🎉 遊戲結算報告 🎉</h4>
-
-                    <p style="margin-bottom: 5px; color: #856404;"><strong>🔮 冒險結局：</strong></p>
-                    <p id="resStory" style="white-space: pre-wrap; margin-top:0; color: #333;"></p>
-
-                    <hr style="border-top: 1px dashed #ffeeba;">
-
-                    <p style="margin-bottom: 5px; color: #856404;"><strong>🧠 MBTI 分析：</strong></p>
-                    <p id="resMBTI" style="white-space: pre-wrap; margin-top:0; color: #333; font-weight: bold;"></p>
-
-                    <hr style="border-top: 1px dashed #ffeeba;">
-
-                    <p style="margin-bottom: 5px; color: #856404;"><strong>💡 教練建議：</strong></p>
-                    <p id="resAdvice" style="white-space: pre-wrap; margin-top:0; color: #333;"></p>
-                </div>
-            </div>
-
-            <button id="btnJoin" class="btn btn-join hidden" onclick="joinContract()">➕ 沒問題，我要加入！</button>
-            <button id="btnStart" class="btn hidden" onclick="doStartContract()">🚀 啟動契約</button>
-            <button id="btnCheckIn" class="btn hidden" onclick="doCheckIn()">✅ 我要打卡</button>
-            <button id="btnDelete" class="btn hidden" style="background-color: #dc3545;"
-                onclick="doDeleteContract()">🗑️ 刪除契約</button>
-
-            <button class="btn" style="background-color: #6c757d; margin-top: 20px;"
-                onclick="window.location.href=window.location.pathname">🏠 回到首頁</button>
-        </div>
-
+        <button id="submitBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded w-full shadow-lg transition duration-200" onclick="submitForm()">
+            ⚔️ 宣告目標，建立小組！
+        </button>
     </div>
 
     <script>
-        // ⚠️ 設定區
-        const MY_LIFF_ID = "2008852230-BdH1Y5Fl";
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbwAwqRtPZ6ETPkjdnFGTpSIG2lfk_C1TOZaVKp3ykk4AKwUNiJFOXii_0jTUKWYzOJGZQ/exec";
+        // 🔑 啟動 LIFF 應用程式 (請把下方替換成你剛剛拿到的 LIFF ID)
+        const myLiffId = "2008852230-BdH1Y5Fl";
 
-        // 🎮 遊戲連結設定區
-        const GAME_URLS = {
-            "Game_A": "https://yuciwangpay-ops.github.io/Game_DailyMBTI/",
-            "Game_B": "https://www.google.com",
-            "Game_C": "https://www.yahoo.com"
-        };
+        // 初始化 LIFF
+        liff.init({ liffId: myLiffId })
+            .then(() => {
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                }
+            })
+            .catch((err) => {
+                console.error("LIFF 初始化失敗", err);
+            });
 
-        // 全域變數
-        let userProfile = null;
-        let currentContractId = null;
+        // 玩家按下按鈕後執行的功能
+        function submitForm() {
+            const groupName = document.getElementById('groupName').value;
+            const habitGoal = document.getElementById('habitGoal').value;
 
-        // === 初始化主程式 ===
-        async function main() {
-            await liff.init({ liffId: MY_LIFF_ID });
-            if (!liff.isLoggedIn()) {
-                liff.login();
+            // 簡單防呆：確保玩家有填寫資料
+            if(groupName === "" || habitGoal === "") {
+                alert("勇者，請填寫完整的小組名稱與目標！");
                 return;
             }
-            userProfile = await liff.getProfile();
 
-            const urlParams = new URLSearchParams(window.location.search);
-            currentContractId = urlParams.get("contractId");
+            // 組合給機器人看的神奇指令
+            const commandText = "#開團 " + groupName + " | " + habitGoal;
 
-            if (currentContractId) {
-                showJoinMode(); // 進入詳情模式
-            } else {
-                document.getElementById("createSection").classList.remove("hidden");
-                // 一進入首頁，直接自動載入列表
-                loadMyContracts();
-            }
-        }
-
-        // === 跳轉遊戲 ===
-        function goToGamePage(targetId, type) {
-            const id = targetId || currentContractId;
-            if (!id) return alert("無契約ID");
-
-            let targetUrl = GAME_URLS[type];
-            if (!targetUrl) {
-                console.warn("未知的遊戲類型:", type, "將使用預設 Game_A");
-                targetUrl = GAME_URLS["Game_A"];
-            }
-
-            const separator = targetUrl.includes("?") ? "&" : "?";
-            window.location.replace(`${targetUrl}${separator}contractId=${id}`);
-        }
-
-        main();
-
-        // === 介面切換 ===
-        function toggleCreateMode(show) {
-            const btn = document.getElementById("btnInitContract");
-            const form = document.getElementById("createForm");
-            if (show) { btn.classList.add("hidden"); form.classList.remove("hidden"); }
-            else { btn.classList.remove("hidden"); form.classList.add("hidden"); }
-        }
-
-        // === 建立契約 ===
-        async function submitContract() {
-            if (!userProfile) return alert("讀取中...");
-            const habitName = document.getElementById("habitName").value;
-            const description = document.getElementById("description").value;
-            const penalty = document.getElementById("penalty").value;
-            const duration = document.getElementById("duration").value;
-            const gameType = document.getElementById("gameType").value;
-
-            if (!habitName || !duration) return alert("請填寫名稱與天數");
-
-            const btn = document.querySelector(".btn-create");
-            btn.disabled = true; btn.textContent = "建立中...";
-
-            try {
-                const res = await fetch(GAS_URL, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        action: "create_contract",
-                        userId: userProfile.userId,
-                        userName: userProfile.displayName,
-                        habitName: habitName,
-                        description: description,
-                        penalty: penalty,
-                        duration: duration,
-                        gameType: gameType
-                    })
-                });
-                const json = await res.json();
-                if (json.result === "success") showSharePage(json.contractId);
-                else { alert(json.message); btn.disabled = false; }
-            } catch (e) { alert(e); btn.disabled = false; }
-        }
-
-        // === 功能 B: 詳情介面 (修正：顯示遊戲結果) ===
-        async function showJoinMode() {
-            document.getElementById("createSection").classList.add("hidden");
-            document.getElementById("shareSection").classList.add("hidden");
-            document.getElementById("joinSection").classList.remove("hidden");
-
-            const btnJoin = document.getElementById("btnJoin");
-            const btnStart = document.getElementById("btnStart");
-            const btnCheckIn = document.getElementById("btnCheckIn");
-            const btnDelete = document.getElementById("btnDelete");
-
-            [btnJoin, btnStart, btnCheckIn, btnDelete].forEach(b => {
-                b.classList.add("hidden"); b.style.display = "none";
-            });
-            const showBtn = (btn) => { btn.classList.remove("hidden"); btn.style.display = "block"; };
-
-            document.getElementById("memberListDisplay").innerHTML = "";
-            // 先隱藏結果區，避免切換時殘留
-            document.getElementById("gameResultArea").classList.add("hidden");
-
-            try {
-                const res = await fetch(GAS_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "get_contract_details", contractId: currentContractId, userId: userProfile.userId })
-                });
-                const json = await res.json();
-
-                if (json.result === "success") {
-                    const data = json.data;
-                    const members = json.members || [];
-                    const isCheckedInToday = json.isCheckedInToday;
-                    const isCreator = (String(data.creatorId) === String(userProfile.userId));
-                    const currentGameType = data.gameType || "Game_A";
-
-                    document.getElementById("showHabitName").textContent = data.habitName;
-                    document.getElementById("showDesc").textContent = data.description;
-                    document.getElementById("showPenalty").textContent = data.penalty;
-                    document.getElementById("showDuration").textContent = data.duration;
-
-                    const listContainer = document.getElementById("memberListDisplay");
-                    let amIInList = false;
-                    members.forEach(m => {
-                        const li = document.createElement("li");
-                        let icon = m.role === "Admin" ? "👑 " : "👤 ";
-                        if (data.status === "RUNNING") icon = m.isDoneToday ? "💯 " : "🐢 ";
-                        li.textContent = icon + m.name;
-                        listContainer.appendChild(li);
-                        if (m.name === userProfile.displayName) amIInList = true;
-                    });
-
-                    document.getElementById("loadingText").classList.add("hidden");
-                    document.getElementById("contractDetails").classList.remove("hidden");
-
-                    // ✨ [新增] 檢查是否有遊戲結果，有的話就顯示 ✨
-                    if (json.myGameResult) {
-                        const r = json.myGameResult;
-                        document.getElementById("resStory").textContent = r.finalStory || "（無資料）";
-                        document.getElementById("resAdvice").textContent = r.coachAdvice || "（無資料）";
-                        document.getElementById("resMBTI").textContent = r.mbtiResult || "（無資料）";
-
-                        // 顯示黃色區塊
-                        document.getElementById("gameResultArea").classList.remove("hidden");
-                    }
-
-                    // 按鈕狀態判斷
-                    if (data.status === "PENDING") {
-                        if (!amIInList) {
-                            showBtn(btnJoin);
-                        } else {
-                            showBtn(btnStart);
-                            btnStart.textContent = isCreator ? "🚀 啟動契約 (隊長限定)" : "⌛ 等待隊長啟動...";
-                            btnStart.disabled = !isCreator;
-                            btnStart.style.backgroundColor = isCreator ? "#7b1fa2" : "#6c757d";
-                            btnStart.style.color = "white";
-                            btnStart.onclick = doStartContract;
-                        }
-                    } else if (data.status === "GAME_INIT") {
-                        showBtn(btnStart);
-                        btnStart.textContent = isCreator ? "⚙️ 前往遊戲設定" : "⌛ 等待初始化...";
-                        btnStart.disabled = !isCreator;
-                        btnStart.style.backgroundColor = isCreator ? "#fd7e14" : "#6c757d";
-                        btnStart.style.color = "white";
-                        btnStart.onclick = () => goToGamePage(currentContractId, currentGameType);
-                    } else if (data.status === "RUNNING") {
-                        showBtn(btnCheckIn);
-                        if (isCheckedInToday) {
-                            btnCheckIn.textContent = "🎮 獲得票券！前往遊戲";
-                            btnCheckIn.style.backgroundColor = "#9c27b0";
-                            btnCheckIn.onclick = () => goToGamePage(currentContractId, currentGameType);
-                        } else {
-                            btnCheckIn.textContent = "✅ 今天任務完成！我要打卡";
-                            btnCheckIn.style.backgroundColor = "#28a745";
-                            btnCheckIn.onclick = () => doCheckIn(currentGameType);
-                        }
-                        if (isCreator) showBtn(btnDelete);
-                        if (data.startDate && data.endDate) {
-                            document.getElementById("statusMessage").textContent = `📅 期限：${data.startDate} ~ ${data.endDate}`;
-                        }
-                    }
+            // 讓 LIFF 代替玩家在聊天室送出訊息
+            liff.sendMessages([
+                {
+                    type: 'text',
+                    text: commandText
                 }
-            } catch (e) { alert(e); }
-        }
-
-        // === 動作函式 ===
-        async function joinContract() {
-            const res = await fetch(GAS_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "join_contract", contractId: currentContractId, userId: userProfile.userId, userName: userProfile.displayName })
+            ]).then(() => {
+                // 訊息送出後，自動關閉 LIFF 網頁，回到 LINE 聊天室
+                liff.closeWindow();
+            }).catch((err) => {
+                console.error("發送訊息失敗", err);
+                alert("發生錯誤，請稍後再試！");
             });
-            const data = await res.json();
-            if (data.result === "success") { alert("加入成功"); location.reload(); }
-        }
-
-        async function doStartContract() {
-            if (!confirm("確定啟動嗎？")) return;
-            const res = await fetch(GAS_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "start_contract", contractId: currentContractId, userId: userProfile.userId })
-            });
-            const data = await res.json();
-            if (data.result === "success") { location.reload(); }
-        }
-
-        async function doCheckIn(gameType) {
-            const btn = document.getElementById("btnCheckIn");
-            const habitName = document.getElementById("showHabitName").textContent;
-
-            const type = gameType || "Game_A";
-            let targetUrl = GAME_URLS[type] || GAME_URLS["Game_A"];
-            const separator = targetUrl.includes("?") ? "&" : "?";
-            const fullGameUrl = `${targetUrl}${separator}contractId=${currentContractId}`;
-
-            btn.disabled = true; btn.textContent = "打卡中...";
-            try {
-                const res = await fetch(GAS_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "log_time", contractId: currentContractId, userId: userProfile.userId, userName: userProfile.displayName })
-                });
-                const data = await res.json();
-                if (data.result === "success") {
-                    try {
-                        await liff.sendMessages([
-                            { type: 'text', text: `✅ 我完成了「${habitName}」的打卡！\n\n🎮 點擊下方連結開始冒險：\n${fullGameUrl}` }
-                        ]);
-                    } catch (err) { console.error(err); }
-
-                    alert("打卡成功！");
-                    location.reload();
-                }
-                else { alert(data.message); btn.disabled = false; }
-            } catch (e) { alert(e); btn.disabled = false; }
-        }
-
-        async function quickCheckIn(id, name, btn, gameType) {
-            btn.disabled = true;
-            const originalText = btn.textContent;
-            btn.textContent = "⏳";
-
-            const type = gameType || "Game_A";
-            let targetUrl = GAME_URLS[type] || GAME_URLS["Game_A"];
-            const separator = targetUrl.includes("?") ? "&" : "?";
-            const fullGameUrl = `${targetUrl}${separator}contractId=${id}`;
-
-            try {
-                const res = await fetch(GAS_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "check_in", contractId: id, userId: userProfile.userId, userName: userProfile.displayName })
-                });
-                const json = await res.json();
-                if (json.result === "success") {
-                    try {
-                        await liff.sendMessages([
-                            { type: 'text', text: `✅ 我完成了「${name}」的打卡！\n\n🎮 點擊下方連結開始冒險：\n${fullGameUrl}` }
-                        ]);
-                    } catch (err) { console.error(err); }
-
-                    alert("打卡成功");
-                    location.reload();
-                }
-                else { alert(json.message); btn.disabled = false; btn.textContent = originalText; }
-            } catch (e) { alert(e); btn.disabled = false; btn.textContent = originalText; }
-        }
-
-        async function doDeleteContract() {
-            if (!confirm("確定刪除？")) return;
-            const res = await fetch(GAS_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "delete_contract", contractId: currentContractId, userId: userProfile.userId })
-            });
-            const data = await res.json();
-            if (data.result === "success") { window.location.href = window.location.pathname; }
-        }
-
-        // === 列表載入 ===
-        async function loadMyContracts() {
-            const listDiv = document.getElementById("historyList");
-            listDiv.innerHTML = "⏳ 載入中...";
-            try {
-                const res = await fetch(GAS_URL, {
-                    method: "POST",
-                    body: JSON.stringify({ action: "get_my_contracts", userId: userProfile.userId })
-                });
-                const json = await res.json();
-                if (json.result === "success") {
-                    listDiv.innerHTML = "";
-                    if (json.contracts.length === 0) {
-                        listDiv.innerHTML = "<p style='text-align:center; color:#999'>目前沒有任何契約喔！</p>";
-                        return;
-                    }
-
-                    json.contracts.forEach(c => {
-                        const displayName = c.habitName || c.name || "未命名";
-                        const safeName = displayName.replace(/'/g, "\\'");
-                        const todayStr = new Date().toLocaleDateString('en-CA');
-                        const isExpired = (c.endDate && todayStr > c.endDate);
-                        const cGameType = c.gameType || "Game_A";
-
-                        let statusIcon = "🔥";
-                        let actionBtnHtml = "";
-
-                        if (c.status === "PENDING") {
-                            statusIcon = "⏳";
-                            actionBtnHtml = `<button onclick="window.location.href='?contractId=${c.id}'" style="background-color:#0d6efd; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:5px;">詳情</button>`;
-                        } else if (c.status === "GAME_INIT") {
-                            statusIcon = "⚙️";
-                            actionBtnHtml = `<button onclick="window.location.href='?contractId=${c.id}'" style="background-color:#fd7e14; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:5px;">設定</button>`;
-                        } else if (isExpired) {
-                            statusIcon = "🏁";
-                            actionBtnHtml = `<button disabled style="background-color:#6c757d; color:white; border:none; padding:5px 10px; border-radius:5px;">已結束</button>`;
-                        } else if (c.isDone) {
-                            statusIcon = "✅";
-                            actionBtnHtml = `<button onclick="goToGamePage('${c.id}', '${cGameType}')" style="background-color:#9c27b0; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:5px;">玩遊戲</button>`;
-                        } else {
-                            actionBtnHtml = `<button onclick="quickCheckIn('${c.id}', '${safeName}', this, '${cGameType}')" style="background-color:#198754; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:5px;">打卡</button>`;
-                        }
-
-                        let percentage = 0;
-                        if (c.status === "RUNNING") {
-                            const total = c.totalMembers || 1;
-                            const done = c.todayCount || 0;
-                            percentage = Math.round((done / total) * 100);
-                        }
-
-                        listDiv.innerHTML += `
-                            <div style="border:1px solid #ddd; padding:12px; margin-bottom:12px; border-radius:10px; background:white;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                                    <div onclick="window.location.href='?contractId=${c.id}'" style="cursor:pointer; flex-grow:1;">
-                                        <strong>${statusIcon} ${displayName}</strong>
-                                    </div>
-                                    <div>
-                                        <button onclick="copyContractLink('${c.id}', '${safeName}')" style="background-color:#ffc107; border:none; padding:5px 8px; border-radius:5px;">🔗</button>
-                                        ${actionBtnHtml}
-                                    </div>
-                                </div>
-                                <div style="background:#e9ecef; height:6px; border-radius:3px; overflow:hidden;">
-                                    <div style="background:${percentage == 100 ? '#ffc107' : '#198754'}; width:${percentage}%; height:100%;"></div>
-                                </div>
-                            </div>`;
-                    });
-                }
-            } catch (e) { listDiv.innerHTML = "讀取失敗"; }
-        }
-
-        // === 輔助函式 ===
-        function showSharePage(id) {
-            document.getElementById("createSection").classList.add("hidden");
-            document.getElementById("shareSection").classList.remove("hidden");
-
-            const contractUrl = `https://liff.line.me/${MY_LIFF_ID}?contractId=${id}`;
-            const botUrl = "https://line.me/R/ti/p/@408wwpgi";
-            const shareText = `🔥 邀請你加入習慣契約！\n\n1️⃣ 點擊連結加入契約：\n${contractUrl}\n\n2️⃣ 記得加小幫手好友 (才收得到通知喔)：\n${botUrl}`;
-            document.getElementById("shareLink").value = shareText;
-        }
-
-        function copyLink() {
-            const copyText = document.getElementById("shareLink");
-            copyText.select(); document.execCommand("copy"); alert("已複製邀請文字！");
-        }
-
-        function copyContractLink(id, name) {
-            const contractUrl = `https://liff.line.me/${MY_LIFF_ID}?contractId=${id}`;
-            const botUrl = "https://line.me/R/ti/p/@408wwpgi";
-            const shareText = `🔥 邀請你加入「${name}」習慣契約！\n\n1️⃣ 點擊連結加入契約：\n${contractUrl}\n\n2️⃣ 記得加小幫手好友 (才收得到通知喔)：\n${botUrl}`;
-            navigator.clipboard.writeText(shareText).then(() => alert(`已複製「${name}」邀請文字！`));
         }
     </script>
 </body>
-
 </html>

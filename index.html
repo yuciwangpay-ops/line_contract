@@ -19,7 +19,7 @@
             </p>
             <p class="text-sm text-red-600 mt-1">
                 建立或加入小組將立即扣除 <span class="font-bold">100 點</span> 押金。<br>
-                每日 21:00 後若未打卡，你將成為同學「戳戳賺賞金」的獵物；若持續未打卡，押金將由系統全數沒收！
+                每日 21:00 後若未打卡將成為被戳獵物；持續未打卡，押金將全數沒收！
             </p>
         </div>
 
@@ -28,6 +28,20 @@
                 為你們的小組取個響亮的名字吧！
             </label>
             <input class="shadow appearance-none border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-400" id="groupName" type="text" placeholder="例如：晨型人俱樂部">
+        </div>
+
+        <div id="durationContainer" class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="durationDays">
+                ⏳ 這次的養成週期是幾天？
+            </label>
+            <select id="durationDays" class="shadow border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-400 bg-white">
+                <option value="3">3 天 (體驗版)</option>
+                <option value="7" selected>7 天 (標準挑戰)</option>
+                <option value="10">10 天</option>
+                <option value="14">14 天</option>
+                <option value="21">21 天 (習慣養成)</option>
+                <option value="28">28 天 (極限挑戰)</option>
+            </select>
         </div>
 
         <div class="mb-6">
@@ -43,31 +57,25 @@
     </div>
 
     <script>
-        const myLiffId = "2008852230-BdH1Y5Fl";
-        
-        // 用來記錄是不是「邀請模式」
+        const myLiffId = "2008852230-BdH1Y5Fl"; 
         let inviteRoomId = null; 
 
         liff.init({ liffId: myLiffId })
             .then(() => {
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                } else {
-                    checkUrlParams(); // 初始化後，檢查網址有沒有帶邀請參數
-                }
+                if (!liff.isLoggedIn()) liff.login();
+                else checkUrlParams(); 
             })
             .catch((err) => console.error("LIFF 初始化失敗", err));
 
-        // 🔍 檢查網址參數的魔法
         function checkUrlParams() {
             const urlParams = new URLSearchParams(window.location.search);
             const roomId = urlParams.get('roomId');
             const roomName = urlParams.get('roomName');
 
             if (roomId && roomName) {
-                // 這是「受邀者」看到的畫面：隱藏群組名稱輸入框，改變標題
                 inviteRoomId = roomId;
                 document.getElementById('groupNameContainer').style.display = 'none';
+                document.getElementById('durationContainer').style.display = 'none'; // 隱藏天數選單
                 document.getElementById('pageTitle').innerHTML = `🤝 邀請加入：<br><span class="text-green-600">${roomName}</span>`;
                 document.getElementById('submitBtn').innerText = "⚔️ 扣除 100 點，確認加入！";
             }
@@ -77,31 +85,22 @@
             const habitGoal = document.getElementById('habitGoal').value;
             let commandText = "";
 
-            if (habitGoal === "") {
-                alert("勇者，請填寫你的習慣目標！");
-                return;
-            }
+            if (habitGoal === "") return alert("勇者，請填寫你的習慣目標！");
 
-            // 判斷是「隊長開團」還是「朋友加入」
             if (inviteRoomId) {
-                // 朋友加入模式
                 commandText = "#加入 " + inviteRoomId + " | " + habitGoal;
             } else {
-                // 隊長開團模式
                 const groupName = document.getElementById('groupName').value;
-                if (groupName === "") {
-                    alert("請填寫小組名稱！");
-                    return;
-                }
-                commandText = "#開團 " + groupName + " | " + habitGoal;
+                const duration = document.getElementById('durationDays').value; // 抓取天數
+                if (groupName === "") return alert("請填寫小組名稱！");
+                
+                // 指令進化：加上天數參數
+                commandText = "#開團 " + groupName + " | " + habitGoal + " | " + duration;
             }
 
             liff.sendMessages([{ type: 'text', text: commandText }])
                 .then(() => liff.closeWindow())
-                .catch((err) => {
-                    console.error("發送失敗", err);
-                    alert("發生錯誤，請稍後再試！");
-                });
+                .catch(() => alert("發生錯誤，請稍後再試！"));
         }
     </script>
 </body>

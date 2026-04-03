@@ -3,76 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>建立靈魂小怪獸群組</title>
+    <title>靈魂小怪獸 - 小組大廳</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-6">
 
     <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6 mt-4">
-        <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">🛡️ 建立冒險小組</h2>
+        <h2 id="pageTitle" class="text-2xl font-bold text-center text-gray-800 mb-6">🛡️ 建立冒險小組</h2>
         
-        <div class="mb-4">
+        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded shadow-sm">
+            <p class="text-sm text-red-700 font-bold flex items-center">
+                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                生死契約確認
+            </p>
+            <p class="text-sm text-red-600 mt-1">
+                建立或加入小組將立即扣除 <span class="font-bold">100 點</span> 押金。<br>
+                每日 21:00 後若未打卡，你將成為同學「戳戳賺賞金」的獵物；若持續未打卡，押金將由系統全數沒收！
+            </p>
+        </div>
+
+        <div id="groupNameContainer" class="mb-4">
             <label class="block text-gray-700 text-sm font-bold mb-2" for="groupName">
                 為你們的小組取個響亮的名字吧！
             </label>
-            <input class="shadow appearance-none border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-400" id="groupName" type="text" placeholder="例如：晨型人俱樂部、期末生存營">
+            <input class="shadow appearance-none border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-400" id="groupName" type="text" placeholder="例如：晨型人俱樂部">
         </div>
 
         <div class="mb-6">
             <label class="block text-gray-700 text-sm font-bold mb-2" for="habitGoal">
                 你自己的專屬習慣目標是？
             </label>
-            <input class="shadow appearance-none border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-400" id="habitGoal" type="text" placeholder="例如：每天喝水2000cc、背20個單字">
+            <input class="shadow appearance-none border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-400" id="habitGoal" type="text" placeholder="例如：每天喝水2000cc">
         </div>
 
         <button id="submitBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded w-full shadow-lg transition duration-200" onclick="submitForm()">
-            ⚔️ 宣告目標，建立小組！
+            ⚔️ 扣除 100 點，建立小組！
         </button>
     </div>
 
     <script>
-        // 🔑 啟動 LIFF 應用程式 (請把下方替換成你剛剛拿到的 LIFF ID)
         const myLiffId = "2008852230-BdH1Y5Fl";
+        
+        // 用來記錄是不是「邀請模式」
+        let inviteRoomId = null; 
 
-        // 初始化 LIFF
         liff.init({ liffId: myLiffId })
             .then(() => {
                 if (!liff.isLoggedIn()) {
                     liff.login();
+                } else {
+                    checkUrlParams(); // 初始化後，檢查網址有沒有帶邀請參數
                 }
             })
-            .catch((err) => {
-                console.error("LIFF 初始化失敗", err);
-            });
+            .catch((err) => console.error("LIFF 初始化失敗", err));
 
-        // 玩家按下按鈕後執行的功能
+        // 🔍 檢查網址參數的魔法
+        function checkUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomId = urlParams.get('roomId');
+            const roomName = urlParams.get('roomName');
+
+            if (roomId && roomName) {
+                // 這是「受邀者」看到的畫面：隱藏群組名稱輸入框，改變標題
+                inviteRoomId = roomId;
+                document.getElementById('groupNameContainer').style.display = 'none';
+                document.getElementById('pageTitle').innerHTML = `🤝 邀請加入：<br><span class="text-green-600">${roomName}</span>`;
+                document.getElementById('submitBtn').innerText = "⚔️ 扣除 100 點，確認加入！";
+            }
+        }
+
         function submitForm() {
-            const groupName = document.getElementById('groupName').value;
             const habitGoal = document.getElementById('habitGoal').value;
+            let commandText = "";
 
-            // 簡單防呆：確保玩家有填寫資料
-            if(groupName === "" || habitGoal === "") {
-                alert("勇者，請填寫完整的小組名稱與目標！");
+            if (habitGoal === "") {
+                alert("勇者，請填寫你的習慣目標！");
                 return;
             }
 
-            // 組合給機器人看的神奇指令
-            const commandText = "#開團 " + groupName + " | " + habitGoal;
-
-            // 讓 LIFF 代替玩家在聊天室送出訊息
-            liff.sendMessages([
-                {
-                    type: 'text',
-                    text: commandText
+            // 判斷是「隊長開團」還是「朋友加入」
+            if (inviteRoomId) {
+                // 朋友加入模式
+                commandText = "#加入 " + inviteRoomId + " | " + habitGoal;
+            } else {
+                // 隊長開團模式
+                const groupName = document.getElementById('groupName').value;
+                if (groupName === "") {
+                    alert("請填寫小組名稱！");
+                    return;
                 }
-            ]).then(() => {
-                // 訊息送出後，自動關閉 LIFF 網頁，回到 LINE 聊天室
-                liff.closeWindow();
-            }).catch((err) => {
-                console.error("發送訊息失敗", err);
-                alert("發生錯誤，請稍後再試！");
-            });
+                commandText = "#開團 " + groupName + " | " + habitGoal;
+            }
+
+            liff.sendMessages([{ type: 'text', text: commandText }])
+                .then(() => liff.closeWindow())
+                .catch((err) => {
+                    console.error("發送失敗", err);
+                    alert("發生錯誤，請稍後再試！");
+                });
         }
     </script>
 </body>

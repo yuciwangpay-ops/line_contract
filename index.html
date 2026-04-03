@@ -3,38 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>靈魂小怪獸 - 小組大廳</title>
+    <title>靈魂小怪獸 - 賞金獵人契約</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-6">
 
     <div class="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6 mt-4">
-        <h2 id="pageTitle" class="text-2xl font-bold text-center text-gray-800 mb-6">🛡️ 建立冒險小組</h2>
+        <h2 id="pageTitle" class="text-2xl font-bold text-center text-gray-800 mb-4">🛡️ 建立冒險小組</h2>
         
-        <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded shadow-sm">
-            <p class="text-sm text-red-700 font-bold flex items-center">
-                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
-                生死契約確認
+        <div class="mb-4 text-center p-3 bg-gray-50 rounded-lg border border-gray-200 shadow-inner">
+            <p class="text-sm text-gray-500 mb-1">你目前的靈魂點數</p>
+            <p id="pointsDisplay" class="text-2xl font-black text-gray-800 animate-pulse">讀取中...</p>
+        </div>
+
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded shadow-sm">
+            <p class="text-base text-blue-800 font-bold flex items-center mb-2 pb-1 border-b border-blue-200">
+                <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+                賞金獵人契約確認
             </p>
-            <p class="text-sm text-red-600 mt-1">
-                建立或加入小組將立即扣除 <span class="font-bold">100 點</span> 押金。<br>
-                每日 21:00 後若未打卡將成為被戳獵物；持續未打卡，押金將全數沒收！
-            </p>
+            <div class="text-sm text-blue-700 space-y-2 leading-relaxed">
+                <p>1. 建立/加入契約將立即扣除 <b>100 點</b> 押金。</p>
+                <p>2. 契約開始後，每日 <b>21:00</b> 未打卡將成為獵物，朋友可惡意提醒奪取您 10 點 (7點歸朋友，3點系統回收)。</p>
+                <p>3. 當日 <b>24:00</b> 仍未打卡，系統將再扣除 20 點！</p>
+                <p>4. 契約結束後將您的點數歸戶，獵殺成功者會大於 100 點喔！</p>
+                <p class="font-bold text-red-500">5. 點數被扣光在此契約會被石化！</p>
+            </div>
         </div>
 
         <div id="groupNameContainer" class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="groupName">
-                為你們的小組取個響亮的名字吧！
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-400" id="groupName" type="text" placeholder="例如：晨型人俱樂部">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="groupName">為你們的小組取個響亮的名字吧！</label>
+            <input class="shadow appearance-none border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-400" id="groupName" type="text" placeholder="例如：晨型人俱樂部">
         </div>
 
         <div id="durationContainer" class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="durationDays">
-                ⏳ 這次的養成週期是幾天？
-            </label>
-            <select id="durationDays" class="shadow border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-400 bg-white">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="durationDays">⏳ 這次的養成週期是幾天？</label>
+            <select id="durationDays" class="shadow border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white">
                 <option value="3">3 天 (體驗版)</option>
                 <option value="7" selected>7 天 (標準挑戰)</option>
                 <option value="10">10 天</option>
@@ -45,27 +49,58 @@
         </div>
 
         <div class="mb-6">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="habitGoal">
-                你自己的專屬習慣目標是？
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-400" id="habitGoal" type="text" placeholder="例如：每天喝水2000cc">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="habitGoal">你自己的專屬習慣目標是？</label>
+            <input class="shadow appearance-none border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-400" id="habitGoal" type="text" placeholder="例如：每天喝水2000cc">
         </div>
 
-        <button id="submitBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded w-full shadow-lg transition duration-200" onclick="submitForm()">
-            ⚔️ 扣除 100 點，建立小組！
+        <button id="submitBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded w-full shadow-lg transition duration-200" onclick="submitForm()">
+            ⚔️ 簽署契約，扣除 100 點！
         </button>
     </div>
 
     <script>
         const myLiffId = "2008852230-BdH1Y5Fl"; 
+        
+        // 🔑 必須填入：請把你剛剛從 GAS「第10版部署」拿到的全新 Web App 網址貼在下面！
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbyvsrXAMpYz-fMC8CpF0SO-eWSe74kFek5acb9CSvyRFgwb5bSFg76q9kuC6m64PBVJ/exec"; 
+        
         let inviteRoomId = null; 
 
         liff.init({ liffId: myLiffId })
             .then(() => {
-                if (!liff.isLoggedIn()) liff.login();
-                else checkUrlParams(); 
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                } else {
+                    checkUrlParams(); 
+                    
+                    // 取得玩家身分後，立刻去 GAS 查點數！
+                    liff.getProfile().then(profile => {
+                        fetchUserPoints(profile.userId);
+                    });
+                }
             })
             .catch((err) => console.error("LIFF 初始化失敗", err));
+
+        // 🔍 新增：用 fetch 去呼叫我們剛剛寫的 doGet API
+        function fetchUserPoints(userId) {
+            fetch(GAS_URL + "?action=getPoints&userId=" + userId)
+                .then(response => response.text())
+                .then(points => {
+                    const displayElement = document.getElementById('pointsDisplay');
+                    displayElement.classList.remove('animate-pulse'); // 停止閃爍特效
+                    
+                    if (points === "NotRegistered") {
+                        displayElement.innerText = "尚未註冊";
+                        displayElement.classList.add('text-red-500');
+                    } else {
+                        displayElement.innerText = points + " 點";
+                        displayElement.classList.add('text-blue-600');
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('pointsDisplay').innerText = "讀取失敗";
+                });
+        }
 
         function checkUrlParams() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -75,8 +110,8 @@
             if (roomId && roomName) {
                 inviteRoomId = roomId;
                 document.getElementById('groupNameContainer').style.display = 'none';
-                document.getElementById('durationContainer').style.display = 'none'; // 隱藏天數選單
-                document.getElementById('pageTitle').innerHTML = `🤝 邀請加入：<br><span class="text-green-600">${roomName}</span>`;
+                document.getElementById('durationContainer').style.display = 'none';
+                document.getElementById('pageTitle').innerHTML = `🤝 邀請加入：<br><span class="text-blue-600">${roomName}</span>`;
                 document.getElementById('submitBtn').innerText = "⚔️ 扣除 100 點，確認加入！";
             }
         }
@@ -91,16 +126,14 @@
                 commandText = "#加入 " + inviteRoomId + " | " + habitGoal;
             } else {
                 const groupName = document.getElementById('groupName').value;
-                const duration = document.getElementById('durationDays').value; // 抓取天數
+                const duration = document.getElementById('durationDays').value; 
                 if (groupName === "") return alert("請填寫小組名稱！");
-                
-                // 指令進化：加上天數參數
                 commandText = "#開團 " + groupName + " | " + habitGoal + " | " + duration;
             }
 
             liff.sendMessages([{ type: 'text', text: commandText }])
                 .then(() => liff.closeWindow())
-                .catch(() => alert("發生錯誤，請稍後再試！"));
+                .catch(() => alert("發生錯誤，請確定您是在 LINE 裡面開啟此表單！"));
         }
     </script>
 </body>

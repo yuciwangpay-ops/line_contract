@@ -123,18 +123,31 @@
             if (habitGoal === "") return alert("勇者，請填寫你的習慣目標！");
 
             if (inviteRoomId) {
+                // 🌟 朋友加入模式：強制導向機器人聊天室
                 commandText = "#加入 " + inviteRoomId + " | " + habitGoal;
+                
+                // 使用官方帳號專屬的跳轉連結，帶入機器人 ID 與預填文字
+                const botId = "@408wwpgi"; 
+                const oaLink = "https://line.me/R/oaMessage/" + botId + "/?" + encodeURIComponent(commandText);
+                
+                // 跳轉過去，朋友只需要按一下「送出」即可！
+                window.location.href = oaLink; 
+
             } else {
+                // 🛡️ 隊長開團模式：因為已經在機器人聊天室內，直接發送即可
                 const groupName = document.getElementById('groupName').value;
                 const duration = document.getElementById('durationDays').value; 
                 if (groupName === "") return alert("請填寫小組名稱！");
+                
                 commandText = "#開團 " + groupName + " | " + habitGoal + " | " + duration;
-            }
 
-            liff.sendMessages([{ type: 'text', text: commandText }])
-                .then(() => liff.closeWindow())
-                .catch(() => alert("發生錯誤，請確定您是在 LINE 裡面開啟此表單！"));
+                liff.sendMessages([{ type: 'text', text: commandText }])
+                    .then(() => liff.closeWindow())
+                    .catch(() => alert("發生錯誤，請確定您是在小怪獸的聊天室裡面開啟此表單！"));
+            }
         }
+
+
     </script>
 </body>
 </html>

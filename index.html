@@ -24,10 +24,8 @@
             </p>
             <div class="text-sm text-blue-700 space-y-2 leading-relaxed">
                 <p>1. 建立/加入契約將立即扣除 <b>100 點</b> 押金。</p>
-                <p>2. 契約開始後，每日 <b>21:00</b> 未打卡將成為獵物，朋友可惡意提醒奪取您 10 點 (7點歸朋友，3點系統回收)。</p>
-                <p>3. 當日 <b>24:00</b> 仍未打卡，系統將再扣除 20 點！</p>
-                <p>4. 契約結束後將您的點數歸戶，獵殺成功者會大於 100 點喔！</p>
-                <p class="font-bold text-red-500">5. 點數被扣光在此契約會被石化！</p>
+                <p>2. 契約開始後，未於規定時間內打卡將成為獵物，朋友可惡意提醒奪取您 10 點 (7點歸朋友，3點系統回收)。</p>
+                <p class="font-bold text-red-500">3. 點數被扣光在此契約會被石化！</p>
             </div>
         </div>
 
@@ -39,12 +37,20 @@
         <div id="durationContainer" class="mb-4">
             <label class="block text-gray-700 text-sm font-bold mb-2" for="durationDays">⏳ 這次的養成週期是幾天？</label>
             <select id="durationDays" class="shadow border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white">
-                <option value="3">3 天 (體驗版)</option>
                 <option value="7" selected>7 天 (標準挑戰)</option>
-                <option value="10">10 天</option>
                 <option value="14">14 天</option>
                 <option value="21">21 天 (習慣養成)</option>
                 <option value="28">28 天 (極限挑戰)</option>
+            </select>
+        </div>
+
+        <div id="huntTimeContainer" class="mb-4">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="huntTime">⏰ 每日獵殺時刻 (幾點後未打卡將被獵殺)</label>
+            <select id="huntTime" class="shadow border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-red-400 bg-white">
+                <option value="20">20:00 (晚上 8 點)</option>
+                <option value="21" selected>21:00 (晚上 9 點)</option>
+                <option value="22">22:00 (晚上 10 點)</option>
+                <option value="23">23:00 (晚上 11 點)</option>
             </select>
         </div>
 
@@ -60,35 +66,26 @@
 
     <script>
         const myLiffId = "2008852230-BdH1Y5Fl"; 
-        
-        // 🔑 必須填入：請把你剛剛從 GAS「第10版部署」拿到的全新 Web App 網址貼在下面！
         const GAS_URL = "https://script.google.com/macros/s/AKfycbyvsrXAMpYz-fMC8CpF0SO-eWSe74kFek5acb9CSvyRFgwb5bSFg76q9kuC6m64PBVJ/exec"; 
         
         let inviteRoomId = null; 
 
         liff.init({ liffId: myLiffId })
             .then(() => {
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                } else {
+                if (!liff.isLoggedIn()) liff.login();
+                else {
                     checkUrlParams(); 
-                    
-                    // 取得玩家身分後，立刻去 GAS 查點數！
-                    liff.getProfile().then(profile => {
-                        fetchUserPoints(profile.userId);
-                    });
+                    liff.getProfile().then(profile => fetchUserPoints(profile.userId));
                 }
             })
             .catch((err) => console.error("LIFF 初始化失敗", err));
 
-        // 🔍 新增：用 fetch 去呼叫我們剛剛寫的 doGet API
         function fetchUserPoints(userId) {
             fetch(GAS_URL + "?action=getPoints&userId=" + userId)
                 .then(response => response.text())
                 .then(points => {
                     const displayElement = document.getElementById('pointsDisplay');
-                    displayElement.classList.remove('animate-pulse'); // 停止閃爍特效
-                    
+                    displayElement.classList.remove('animate-pulse');
                     if (points === "NotRegistered") {
                         displayElement.innerText = "尚未註冊";
                         displayElement.classList.add('text-red-500');
@@ -97,9 +94,7 @@
                         displayElement.classList.add('text-blue-600');
                     }
                 })
-                .catch(error => {
-                    document.getElementById('pointsDisplay').innerText = "讀取失敗";
-                });
+                .catch(() => document.getElementById('pointsDisplay').innerText = "讀取失敗");
         }
 
         function checkUrlParams() {
@@ -111,6 +106,7 @@
                 inviteRoomId = roomId;
                 document.getElementById('groupNameContainer').style.display = 'none';
                 document.getElementById('durationContainer').style.display = 'none';
+                document.getElementById('huntTimeContainer').style.display = 'none'; // 隱藏時間選單
                 document.getElementById('pageTitle').innerHTML = `🤝 邀請加入：<br><span class="text-blue-600">${roomName}</span>`;
                 document.getElementById('submitBtn').innerText = "⚔️ 扣除 100 點，確認加入！";
             }
@@ -123,31 +119,25 @@
             if (habitGoal === "") return alert("勇者，請填寫你的習慣目標！");
 
             if (inviteRoomId) {
-                // 🌟 朋友加入模式：強制導向機器人聊天室
                 commandText = "#加入 " + inviteRoomId + " | " + habitGoal;
-                
-                // 使用官方帳號專屬的跳轉連結，帶入機器人 ID 與預填文字
                 const botId = "@408wwpgi"; 
                 const oaLink = "https://line.me/R/oaMessage/" + botId + "/?" + encodeURIComponent(commandText);
-                
-                // 跳轉過去，朋友只需要按一下「送出」即可！
                 window.location.href = oaLink; 
-
             } else {
-                // 🛡️ 隊長開團模式：因為已經在機器人聊天室內，直接發送即可
                 const groupName = document.getElementById('groupName').value;
                 const duration = document.getElementById('durationDays').value; 
+                const huntTime = document.getElementById('huntTime').value; // 取得設定的獵殺時間
+                
                 if (groupName === "") return alert("請填寫小組名稱！");
                 
-                commandText = "#開團 " + groupName + " | " + habitGoal + " | " + duration;
+                // 🌟 指令格式進化：加上第 4 個參數「獵殺時間」
+                commandText = "#開團 " + groupName + " | " + habitGoal + " | " + duration + " | " + huntTime;
 
                 liff.sendMessages([{ type: 'text', text: commandText }])
                     .then(() => liff.closeWindow())
                     .catch(() => alert("發生錯誤，請確定您是在小怪獸的聊天室裡面開啟此表單！"));
             }
         }
-
-
     </script>
 </body>
 </html>

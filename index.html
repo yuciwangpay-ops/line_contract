@@ -45,13 +45,9 @@
         </div>
 
         <div id="huntTimeContainer" class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="huntTime">⏰ 每日獵殺時刻 (幾點後未打卡將被獵殺)</label>
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="huntTime">⏰ 每日獵殺時刻 (超過此時間未打卡將被掠奪)</label>
             <select id="huntTime" class="shadow border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-red-400 bg-white">
-                <option value="20">20:00 (晚上 8 點)</option>
-                <option value="21" selected>21:00 (晚上 9 點)</option>
-                <option value="22">22:00 (晚上 10 點)</option>
-                <option value="23">23:00 (晚上 11 點)</option>
-            </select>
+                </select>
         </div>
 
         <div class="mb-6">
@@ -72,13 +68,38 @@
 
         liff.init({ liffId: myLiffId })
             .then(() => {
-                if (!liff.isLoggedIn()) liff.login();
-                else {
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                } else {
                     checkUrlParams(); 
+                    generateTimeOptions(); // 啟動自動生成選單魔法
                     liff.getProfile().then(profile => fetchUserPoints(profile.userId));
                 }
             })
             .catch((err) => console.error("LIFF 初始化失敗", err));
+
+        // 🌟 自動生成分組時間選項
+        function generateTimeOptions() {
+            const select = document.getElementById('huntTime');
+            const timeGroups = [
+                { label: '🌅 早晨習慣 (05:00 - 11:00)', start: 5, end: 11 },
+                { label: '☀️ 午後時光 (12:00 - 17:00)', start: 12, end: 17 },
+                { label: '🌙 晚間結算 (18:00 - 23:00)', start: 18, end: 23 }
+            ];
+
+            timeGroups.forEach(group => {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = group.label;
+                for (let i = group.start; i <= group.end; i++) {
+                    const opt = document.createElement('option');
+                    opt.value = i;
+                    opt.text = `${i < 10 ? '0' + i : i}:00 前須完成`;
+                    if (i === 21) opt.selected = true; // 預設選在 21:00
+                    optgroup.appendChild(opt);
+                }
+                select.appendChild(optgroup);
+            });
+        }
 
         function fetchUserPoints(userId) {
             fetch(GAS_URL + "?action=getPoints&userId=" + userId)
@@ -94,7 +115,9 @@
                         displayElement.classList.add('text-blue-600');
                     }
                 })
-                .catch(() => document.getElementById('pointsDisplay').innerText = "讀取失敗");
+                .catch(() => {
+                    document.getElementById('pointsDisplay').innerText = "讀取失敗";
+                });
         }
 
         function checkUrlParams() {
@@ -119,18 +142,19 @@
             if (habitGoal === "") return alert("勇者，請填寫你的習慣目標！");
 
             if (inviteRoomId) {
+                // 🌟 朋友加入模式：強制導向官方帳號聊天室
                 commandText = "#加入 " + inviteRoomId + " | " + habitGoal;
                 const botId = "@408wwpgi"; 
                 const oaLink = "https://line.me/R/oaMessage/" + botId + "/?" + encodeURIComponent(commandText);
                 window.location.href = oaLink; 
             } else {
+                // 🌟 隊長開團模式
                 const groupName = document.getElementById('groupName').value;
                 const duration = document.getElementById('durationDays').value; 
-                const huntTime = document.getElementById('huntTime').value; // 取得設定的獵殺時間
+                const huntTime = document.getElementById('huntTime').value; // 抓取獵殺時間
                 
                 if (groupName === "") return alert("請填寫小組名稱！");
                 
-                // 🌟 指令格式進化：加上第 4 個參數「獵殺時間」
                 commandText = "#開團 " + groupName + " | " + habitGoal + " | " + duration + " | " + huntTime;
 
                 liff.sendMessages([{ type: 'text', text: commandText }])
